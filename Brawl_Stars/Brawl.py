@@ -88,6 +88,19 @@ def _parse_int(v: str):
     except ValueError:
         return None
 
+
+def _parse_dice_faces(v: str) -> list[int]:
+    raw = str(v or "").strip()
+    if not raw:
+        return []
+    out = []
+    for part in raw.split():
+        try:
+            out.append(int(part))
+        except ValueError:
+            continue
+    return out
+
 def _normalizar_raridade(r: str) -> str:
     key = _strip_accents((r or "").strip().lower())
     return _RARIDADE_MAP.get(key, "comum")
@@ -148,6 +161,8 @@ def carregar_cartuchos_de_csv(caminho_csv: str) -> list[dict]:
                 "características": sinergias,          # sinergias do CSV
                 "imagem": f"{slug}_portrait.png",      # sempre "<nome>_portrait.png" (em slug)
                 "stats": stats,                        # stats completos
+                "tipo_dado": str(row.get("Tipo Dado") or "").strip(),
+                "dado": _parse_dice_faces(row.get("Dado")),
             })
 
     return cartuchos

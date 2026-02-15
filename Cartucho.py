@@ -22,6 +22,13 @@ class Cartucho:
         st = self.dados.get("stats", {})
         self.stats = dict(st) if isinstance(st, dict) else {}
 
+        self.tipo_dado = str(self.dados.get("tipo_dado", "")).strip()
+        dado = self.dados.get("dado", [])
+        if isinstance(dado, (list, tuple)):
+            self.dado = [int(x) for x in dado if str(x).strip()]
+        else:
+            self.dado = []
+
         # sinergias (cacheadas e limpas)
         car = self.dados.get("características", [])
         if isinstance(car, (list, tuple)):
@@ -113,4 +120,3 @@ class Cartucho:
 
         if highlight:
             _retangulo_arredondado(surf, highlight, r, 4, 12)
-
