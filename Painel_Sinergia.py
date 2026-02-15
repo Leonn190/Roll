@@ -3,6 +3,7 @@ import pygame
 import colorsys
 from Loja import SHOP_SLOTS, SHOP_PAD, SHOP_GAP, SHOP_BUTTON_H
 from Banco import BANK_CARD_H
+from Brawl_Stars.Brawl import DECK_DEFS, gerar_imagem_cartucho_grid
 
 RIGHT_PANEL_W = 240
 SYNERGY_PANEL_H = 360
@@ -56,18 +57,31 @@ class PainelSinergia:
         self.hovered_synergy = None
         self._item_rects = {}
         self._tooltip = None
+        self._all_brawlers_defs = list(DECK_DEFS)
         self._recalc_layout()
 
     def _draw_synergy_tooltip(self, surf, font_item, mouse_pos):
         if not self._tooltip:
             return
 
-        titulo, integrantes = self._tooltip
-        linhas = [titulo] + integrantes
-        renders = [font_item.render(txt, True, TEXT) for txt in linhas]
+        titulo = str(self._tooltip.get("titulo", "Sinergia"))
+        integrantes = list(self._tooltip.get("integrantes", []) or [])
 
-        w = max(r.get_width() for r in renders) + 20
-        h = sum(r.get_height() for r in renders) + 14 + (len(renders) - 1) * 4
+        t_titulo = font_item.render(titulo, True, TEXT)
+
+        icon_size = 32
+        pad = 10
+        cols = 6
+        rows = max(1, (len(integrantes) + cols - 1) // cols)
+
+        grid_w = cols * icon_size + max(0, cols - 1) * 6
+        used_cols = cols if integrantes else 1
+        if integrantes and len(integrantes) < cols:
+            used_cols = len(integrantes)
+            grid_w = used_cols * icon_size + max(0, used_cols - 1) * 6
+
+        w = max(t_titulo.get_width() + pad * 2, grid_w + pad * 2)
+        h = pad * 2 + t_titulo.get_height() + 8 + rows * icon_size + max(0, rows - 1) * 6
 
         tip = pygame.Rect(mouse_pos[0] + 16, mouse_pos[1] + 14, w, h)
         if tip.right > surf.get_width() - 8:
@@ -78,12 +92,23 @@ class PainelSinergia:
         draw_round_rect(surf, (15, 15, 20), tip, 0, 10)
         pygame.draw.rect(surf, (120, 120, 140), tip, 2, border_radius=10)
 
-        yy = tip.y + 7
-        for i, rr in enumerate(renders):
-            surf.blit(rr, (tip.x + 10, yy))
-            yy += rr.get_height() + 4
-            if i == 0:
-                pygame.draw.line(surf, (90, 90, 110), (tip.x + 8, yy - 2), (tip.right - 8, yy - 2), 1)
+        surf.blit(t_titulo, (tip.x + pad, tip.y + pad))
+        y0 = tip.y + pad + t_titulo.get_height() + 8
+        pygame.draw.line(surf, (90, 90, 110), (tip.x + 8, y0 - 4), (tip.right - 8, y0 - 4), 1)
+
+        if not integrantes:
+            vazio = font_item.render("Sem brawlers", True, TEXT_SUB)
+            surf.blit(vazio, (tip.x + pad, y0 + 2))
+            return
+
+        for idx, d in enumerate(integrantes):
+            row = idx // cols
+            col = idx % cols
+            xx = tip.x + pad + col * (icon_size + 6)
+            yy = y0 + row * (icon_size + 6)
+            icon = gerar_imagem_cartucho_grid(d, (icon_size, icon_size))
+            surf.blit(icon, (xx, yy))
+            pygame.draw.rect(surf, (70, 70, 90), pygame.Rect(xx, yy, icon_size, icon_size), 1, border_radius=6)
 
     def _recalc_layout(self):
         W = self.tela.get_width()
@@ -143,15 +168,15 @@ class PainelSinergia:
             if item_rect.collidepoint(mouse_pos):
                 self.hovered_synergy = syn_norm
                 integrantes = []
-                for c in grid_occ.values():
-                    sinergias = [str(s).strip().lower() for s in getattr(c, "sinergias", [])]
-                    if syn_norm in sinergias:
-                        integrantes.append(str(getattr(c, "nome", "???")).title())
-                integrantes = sorted(set(integrantes))
-                if integrantes:
-                    self._tooltip = (f"{str(syn).title()} ({len(integrantes)})", integrantes)
-                else:
-                    self._tooltip = (f"{str(syn).title()} (0)", ["Sem integrantes no campo"])
+                for d in self._all_brawlers_defs:
+                    sins = [str(s2).strip().lower() for s2 in (d.get("características", []) or [])]
+                    if syn_norm in sins:
+                        integrantes.append(d)
+
+                self._tooltip = {
+                    "titulo": f"{str(syn).title()} ({len(integrantes)})",
+                    "integrantes": integrantes,
+                }
 
             y += 24
             shown += 1

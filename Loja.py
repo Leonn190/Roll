@@ -14,6 +14,8 @@ TEXT = (245, 245, 245)
 BTN_BG = (26, 26, 34)
 BTN_BORDER = (90, 90, 110)
 BTN_HOVER = (40, 40, 56)
+GOLD = (255, 215, 90)
+MUTED = (180, 180, 195)
 
 SHOP_SLOTS = 3
 SHOP_PAD = 14
@@ -84,6 +86,7 @@ class Loja:
 
         # player (ouro)
         self.player = None
+        self.gasto_total = 0
 
         self._recalc_layout()
         self.reroll(free=True)  # primeira rolagem não cobra (não foi pedido cobrar)
@@ -128,6 +131,7 @@ class Loja:
             if getattr(self.player, "ouro", 0) < REROLL_COST:
                 return
             self.player.ouro -= REROLL_COST
+            self.gasto_total += REROLL_COST
 
         # devolve os atuais pro deck
         for i in range(SHOP_SLOTS):
@@ -170,6 +174,7 @@ class Loja:
                     return None
 
                 self.player.ouro -= cost
+                self.gasto_total += cost
 
                 self.cartuchos[i] = None
                 c.location = "banco"
@@ -188,6 +193,9 @@ class Loja:
         t = fonte_titulo.render("LOJA", True, TEXT)
         surf.blit(t, (self.rect.x + SHOP_PAD, self.rect.y + 10))
 
+        gasto_txt = fonte_item.render(f"Gasto: {int(self.gasto_total)}g", True, GOLD)
+        surf.blit(gasto_txt, (self.rect.right - SHOP_PAD - gasto_txt.get_width(), self.rect.y + 16))
+
         for sr in self.slot_rects:
             draw_round_rect(surf, (12, 12, 16), sr, 0, 12)
             draw_round_rect(surf, (40, 40, 50), sr, 2, 12)
@@ -202,10 +210,17 @@ class Loja:
                 c.set_rect(self.slot_rects[i])
             c.draw(surf, fonte_nome, fonte_carac, compact=False)
 
+            cost = _cost_for_cartucho(c)
+            badge = pygame.Rect(c.rect.x + 6, c.rect.y + 6, 52, 24)
+            draw_round_rect(surf, (12, 12, 16), badge, 0, 8)
+            draw_round_rect(surf, (115, 95, 45), badge, 2, 8)
+            ctxt = fonte_item.render(f"{cost}g", True, GOLD)
+            surf.blit(ctxt, ctxt.get_rect(center=badge.center))
+
         mx, my = pygame.mouse.get_pos()
         hovering = self.btn_reroll.collidepoint((mx, my))
         draw_round_rect(surf, BTN_HOVER if hovering else BTN_BG, self.btn_reroll, 0, 10)
         draw_round_rect(surf, BTN_BORDER, self.btn_reroll, 2, 10)
 
-        label = fonte_item.render("REROLL", True, TEXT)
+        label = fonte_item.render(f"REROLL ({REROLL_COST}g)", True, TEXT)
         surf.blit(label, label.get_rect(center=self.btn_reroll.center))

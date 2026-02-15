@@ -472,6 +472,10 @@ class PlayerEstrategista:
         except (ValueError, TypeError):
             return 0
 
+    def _star_mult(self, cartucho) -> float:
+        estrelas = max(0, int(getattr(cartucho, "estrelas", 0) or 0))
+        return 1.0 + 0.5 * estrelas
+
     def _set_total_animado(self, attr: str, novo_val: int, agora_ms: int):
         novo_val = int(novo_val)
         atual_vis = float(self.display_val.get(attr, 0.0))
@@ -556,12 +560,14 @@ class PlayerEstrategista:
         soma = {k: 0 for k in ATRIBUTOS}
 
         for c in cartuchos:
+            mult = self._star_mult(c)
+
             vida_total += self._get_stat(c, "vida")
 
-            soma["dano_fisico"]   += self._get_stat(c, "dano_fisico")
-            soma["dano_magico"]   += self._get_stat(c, "dano_especial")
-            soma["defesa_fisica"] += self._get_stat(c, "defesa_fisica")
-            soma["defesa_magica"] += self._get_stat(c, "defesa_especial")
+            soma["dano_fisico"]   += int(round(self._get_stat(c, "dano_fisico") * mult))
+            soma["dano_magico"]   += int(round(self._get_stat(c, "dano_especial") * mult))
+            soma["defesa_fisica"] += int(round(self._get_stat(c, "defesa_fisica") * mult))
+            soma["defesa_magica"] += int(round(self._get_stat(c, "defesa_especial") * mult))
             soma["regeneracao"]   += self._get_stat(c, "regeneracao")
             soma["mana"]          += self._get_stat(c, "mana")
             soma["velocidade"]    += self._get_stat(c, "velocidade")
@@ -593,10 +599,10 @@ class PlayerEstrategista:
 
             faces = list((dado_info or {}).get("faces", []) or [])
             cartucho = (dado_info or {}).get("cartucho")
-            self.dados_selecionados[attr].append({
+            self.dados_selecionados[attr] = [{
                 "faces": faces[:6],
                 "cartucho": cartucho,
-            })
+            }]
             return True
 
         return False

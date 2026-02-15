@@ -46,6 +46,9 @@ class Cartucho:
         self.dragging = False
         self.drag_off = (0, 0)
 
+        # evolução por sobreposição de cópias na grid
+        self.estrelas = 0
+
     # --- acesso rápido ---
     @property
     def sinergias(self) -> list[str]:
@@ -111,6 +114,15 @@ class Cartucho:
             # GRID = só imagem do brawler (sem nome/sem características)
             img = gerar_imagem_cartucho_grid(self.dados, (r.w, r.h))
             surf.blit(img, r.topleft)
+
+            if self.estrelas > 0:
+                txt = f"★{self.estrelas}"
+                tag = fonte_carac.render(txt, True, (255, 240, 140))
+                box = pygame.Rect(r.x + 4, r.y + 4, tag.get_width() + 10, tag.get_height() + 4)
+                pygame.draw.rect(surf, (15, 15, 20), box, border_radius=6)
+                pygame.draw.rect(surf, (255, 220, 120), box, 1, border_radius=6)
+                surf.blit(tag, (box.x + 5, box.y + 2))
+
             if highlight:
                 _retangulo_arredondado(surf, highlight, r, 3, 10)
             return
