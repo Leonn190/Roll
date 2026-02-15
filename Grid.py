@@ -337,7 +337,8 @@ class Grid:
     def place(self, cartucho, c, r):
         existing = self.occ.get((c, r))
         if existing is not None:
-            existing.estrelas = int(getattr(existing, "estrelas", 0)) + 1
+            estrelas = int(getattr(existing, "estrelas", 0) or 0) + 1
+            existing.estrelas = max(0, min(3, estrelas))
             self.campo_dirty = True
             return
 

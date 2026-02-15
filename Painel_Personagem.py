@@ -1,6 +1,23 @@
 import pygame
+import os
 
 from Brawl_Stars.Brawl import CORES_RARIDADE, gerar_imagem_cartucho_grid
+
+STAR_ICON_PATH = os.path.join("Recursos", "Visual", "Icones", "estrela.png")
+_STAR_ICON_CACHE = {}
+
+
+def _get_star_icon(size: int):
+    size = max(8, int(size))
+    if size in _STAR_ICON_CACHE:
+        return _STAR_ICON_CACHE[size]
+    try:
+        icon = pygame.image.load(STAR_ICON_PATH).convert_alpha()
+        icon = pygame.transform.smoothscale(icon, (size, size))
+    except Exception:
+        icon = None
+    _STAR_ICON_CACHE[size] = icon
+    return icon
 
 
 STAT_FIELDS = [
@@ -95,7 +112,22 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
 
     info_x = portrait_rect.right + 10
     nome = fonte_titulo.render(cartucho.nome, True, (245, 245, 250))
-    surf.blit(nome, (info_x, panel_rect.y + 10))
+    nome_pos = (info_x, panel_rect.y + 10)
+    surf.blit(nome, nome_pos)
+
+    stars = max(0, min(3, int(getattr(cartucho, "estrelas", 0) or 0)))
+    if stars > 0:
+        icon_size = max(10, min(18, nome.get_height() - 2))
+        icon = _get_star_icon(icon_size)
+        sx = nome_pos[0] + nome.get_width() + 8
+        sy = nome_pos[1] + (nome.get_height() - icon_size) // 2
+        for i in range(stars):
+            pos = (sx + i * (icon_size + 2), sy)
+            if icon is not None:
+                surf.blit(icon, pos)
+            else:
+                fb = fonte_micro.render("★", True, (255, 230, 120))
+                surf.blit(fb, pos)
 
     raridade = str(getattr(cartucho, "raridade", "comum") or "comum").upper()
     tr = fonte_micro.render(f"Raridade: {raridade}", True, _raridade_cor(cartucho))
