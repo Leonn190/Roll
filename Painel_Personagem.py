@@ -9,8 +9,8 @@ STAT_FIELDS = [
     ("dano_especial", "SpA"),
     ("defesa_fisica", "Def"),
     ("defesa_especial", "SpD"),
-    ("mana", "Mana"),
-    ("regeneracao", "Regen"),
+    ("mana", "Man"),
+    ("regeneracao", "Reg"),
     ("velocidade", "Vel"),
     ("perfuracao", "Perf"),
 ]
@@ -21,6 +21,9 @@ DICE_TYPE_LABEL = {
     "atk": "Dano Físico",
     "def": "Defesa Física",
     "per": "Perfuração",
+    "reg": "Regeneração",
+    "man": "Mana",
+    "vel": "Velocidade",
     "": "-",
 }
 
@@ -30,6 +33,9 @@ DICE_TYPE_COLOR = {
     "atk": (240, 110, 70),
     "def": (235, 195, 80),
     "per": (220, 80, 95),
+    "reg": (80, 220, 120),
+    "man": (60, 110, 235),
+    "vel": (170, 170, 170),
     "": (80, 80, 95),
 }
 
@@ -46,6 +52,33 @@ def _as_int(v):
 def _raridade_cor(cartucho):
     rar = str(getattr(cartucho, "raridade", "comum") or "comum").lower().strip()
     return CORES_RARIDADE.get(rar, CORES_RARIDADE["comum"])
+
+
+def _render_wrapped_center(surf, font, text, color, rect):
+    words = str(text or "").split()
+    lines = []
+    cur = ""
+    for w in words:
+        t = (cur + " " + w).strip()
+        if font.size(t)[0] <= rect.w:
+            cur = t
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+    if cur:
+        lines.append(cur)
+
+    if not lines:
+        return
+
+    line_h = font.get_height() + 2
+    total_h = len(lines) * line_h
+    y = rect.y + (rect.h - total_h) // 2
+    for ln in lines:
+        ts = font.render(ln, True, color)
+        surf.blit(ts, ts.get_rect(centerx=rect.centerx, y=y))
+        y += line_h
 
 
 def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
@@ -84,7 +117,6 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
         syn = fonte_txt.render("Sem sinergia", True, (210, 210, 225))
         surf.blit(syn, (portrait_rect.right + 10, panel_rect.y + 62))
 
-    # atributos: apenas os não zerados
     st = getattr(cartucho, "stats", {}) or {}
     atributos = []
     for key, label in STAT_FIELDS:
@@ -92,14 +124,22 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
         if val != 0:
             atributos.append(f"{label} {val}")
 
-    stats_y = panel_rect.y + 108
-    for i, txt in enumerate(atributos[:6]):
-        tx = panel_rect.x + 10 + (i % 2) * 145
-        ty = stats_y + (i // 2) * 20
+    left_x = panel_rect.x + 12
+    stats_y = panel_rect.y + 112
+    for i, txt in enumerate(atributos[:8]):
+        ty = stats_y + i * 20
         t = fonte_micro.render(txt, True, (232, 232, 240))
-        surf.blit(t, (tx, ty))
+        surf.blit(t, (left_x, ty))
 
-    # bloco de dado no fundo
+    desc_rect = pygame.Rect(panel_rect.x + 108, panel_rect.y + 110, panel_rect.w - 118, 96)
+    pygame.draw.rect(surf, (28, 28, 36), desc_rect, border_radius=8)
+    pygame.draw.rect(surf, (75, 75, 95), desc_rect, 1, border_radius=8)
+
+    desc = str(getattr(cartucho, "descricao", "") or "").strip()
+    desc_txt = desc if desc else "Sem habilidade"
+    desc_color = (220, 220, 230) if desc else (145, 145, 165)
+    _render_wrapped_center(surf, fonte_micro, desc_txt, desc_color, desc_rect.inflate(-10, -8))
+
     tipo = str(getattr(cartucho, "tipo_dado", "") or "").strip().lower()
     dado = list(getattr(cartucho, "dado", []) or [])
     while len(dado) < 6:
@@ -124,5 +164,5 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
         sq_x += sq_size + sq_gap
 
     tipo_label = DICE_TYPE_LABEL.get(tipo, "-")
-    t_tipo = fonte_micro.render(f"{tipo.upper() or '-'} ({tipo_label})", True, (255, 255, 255))
+    t_tipo = fonte_micro.render(tipo_label, True, (255, 255, 255))
     surf.blit(t_tipo, (sq_x + 6, dice_rect.y + (dice_rect.h - t_tipo.get_height()) // 2))

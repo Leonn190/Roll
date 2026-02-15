@@ -163,6 +163,12 @@ def carregar_cartuchos_de_csv(caminho_csv: str) -> list[dict]:
                 "stats": stats,                        # stats completos
                 "tipo_dado": str(row.get("Tipo Dado") or "").strip(),
                 "dado": _parse_dice_faces(row.get("Dado")),
+                "descricao": str(
+                    row.get("Descrição")
+                    or row.get("Descricao")
+                    or row.get("Descrição habilidade")
+                    or ""
+                ).strip(),
             })
 
     return cartuchos

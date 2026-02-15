@@ -23,6 +23,7 @@ class Cartucho:
         self.stats = dict(st) if isinstance(st, dict) else {}
 
         self.tipo_dado = str(self.dados.get("tipo_dado", "")).strip()
+        self.descricao = str(self.dados.get("descricao", "")).strip()
         dado = self.dados.get("dado", [])
         if isinstance(dado, (list, tuple)):
             self.dado = [int(x) for x in dado if str(x).strip()]

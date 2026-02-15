@@ -417,6 +417,10 @@ class PlayerEstrategista:
         self.display_val = {k: 0.0 for k in ATRIBUTOS}
         self.anim = {k: {"from": 0.0, "to": 0.0, "t0": 0, "on": False} for k in ATRIBUTOS}
 
+        # dados alocados manualmente via arrasto na grid
+        self.dados_selecionados = {k: [] for k in ATRIBUTOS}
+        self._attr_rects = {}
+
         # fontes
         self._font_nome = None
         self._font_small = None
@@ -569,6 +573,30 @@ class PlayerEstrategista:
         # sinergias conectadas
         self.sinergias_ativas = self._calcula_sinergias_ativas_conectadas()
 
+    def drop_dado_em_attr(self, mouse_pos, dado_info: dict):
+        """Recebe um dado arrastado da grid e tenta alocar em um atributo da ficha."""
+        if not self._attr_rects:
+            return False
+
+        attr_src = str((dado_info or {}).get("attr", "")).strip()
+        if attr_src not in ATRIBUTOS:
+            return False
+
+        for attr, rect in self._attr_rects.items():
+            if not rect.collidepoint(mouse_pos):
+                continue
+            if attr != attr_src:
+                return False
+
+            faces = list((dado_info or {}).get("faces", []) or [])
+            self.dados_selecionados[attr].append({
+                "faces": faces[:6],
+                "cartucho": getattr((dado_info or {}).get("cartucho"), "nome", ""),
+            })
+            return True
+
+        return False
+
     # ----------------------------
     # update
     # ----------------------------
@@ -638,6 +666,7 @@ class PlayerEstrategista:
         cell_h = (h - (grid_top - y) - self.PAD - gap * (rows - 1)) // rows
 
         mouse_pos = pygame.mouse.get_pos()
+        self._attr_rects = {}
 
         for idx, attr in enumerate(ATRIBUTOS):
             col = idx % cols
@@ -645,6 +674,7 @@ class PlayerEstrategista:
             bx = cx + col * (cell_w + gap)
             by = grid_top + row * (cell_h + gap)
             cell = pygame.Rect(bx, by, cell_w, cell_h)
+            self._attr_rects[attr] = cell
 
             base_cor = DICE_TYPES.get(attr, (200, 200, 200))
             hovered = cell.collidepoint(mouse_pos)
@@ -664,3 +694,8 @@ class PlayerEstrategista:
             tnum = self._font_big.render(vtxt, True, self.COR_NUM)
             center_y = by + (cell_h // 2) + 8
             tela.blit(tnum, tnum.get_rect(center=(bx + cell_w // 2, center_y)))
+
+            dados_qtd = len(self.dados_selecionados.get(attr, []))
+            if dados_qtd > 0:
+                td = self._font_micro.render(f"Dado: {dados_qtd}", True, (240, 240, 210))
+                tela.blit(td, (bx + 10, by + cell_h - td.get_height() - 6))

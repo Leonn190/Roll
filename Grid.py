@@ -127,6 +127,9 @@ class Grid:
         # ---------------- cores dinâmicas das sinergias (estáveis)
         self._syn_color_cache = {}
 
+        # arrasto de dado (da grade para a ficha do player)
+        self.dragging_dado = None
+
     # ---------------- API para a Tela_Estrategista / Player
     def get_cartuchos_em_campo(self):
         return list(self.occ.values())
@@ -251,6 +254,35 @@ class Grid:
         cur = owners.get(key)
         return (cur is None) or (cur == synergy)
 
+    def _tipo_dado_para_attr(self, tipo: str):
+        t = str(tipo or "").strip().lower()
+        return {
+            "atk": "dano_fisico",
+            "spa": "dano_magico",
+            "def": "defesa_fisica",
+            "spd": "defesa_magica",
+            "reg": "regeneracao",
+            "man": "mana",
+            "vel": "velocidade",
+            "per": "penetracao",
+        }.get(t)
+
+    def _pick_dado_cartucho_grid(self, mouse_pos):
+        cell = self.in_cell(mouse_pos)
+        if not cell:
+            return None
+        cartucho = self.occ.get(cell)
+        if not cartucho:
+            return None
+        tipo = str(getattr(cartucho, "tipo_dado", "") or "").strip().lower()
+        attr = self._tipo_dado_para_attr(tipo)
+        if not attr:
+            return None
+        faces = list(getattr(cartucho, "dado", []) or [])
+        if not faces:
+            return None
+        return {"cartucho": cartucho, "attr": attr, "tipo": tipo, "faces": faces}
+
     # ---------------- placement rules ----------------
     def can_place(self, cartucho, c, r):
         if not (0 <= c < self.cols and 0 <= r < self.rows) or (c, r) in self.occ:
@@ -322,6 +354,11 @@ class Grid:
                     continue
 
                 if e.button == 1:
+                    dado_pick = self._pick_dado_cartucho_grid(mouse_pos)
+                    if dado_pick is not None:
+                        self.dragging_dado = dado_pick
+                        continue
+
                     if self.loja.btn_reroll.collidepoint(mouse_pos):
                         self.loja.handle_click(mouse_pos)
                         continue
@@ -340,34 +377,42 @@ class Grid:
                         self.dragging.start_drag(mouse_pos)
                         self._recompute_valid_cells()
 
-            elif e.type == pygame.MOUSEBUTTONUP and e.button == 1 and self.dragging:
-                if self.loja.sell_drop_here(mouse_pos):
-                    self.dragging.stop_drag()
-                    sell_value = 0
-                    if hasattr(self.loja, "sell_value_for_cartucho"):
-                        sell_value = self.loja.sell_value_for_cartucho(self.dragging)
-                    if hasattr(self.loja, "player") and self.loja.player is not None:
-                        self.loja.player.ouro = getattr(self.loja.player, "ouro", 0) + sell_value
-                    self.loja.deck_defs.append(self.dragging.to_def())
-                    self.dragging = None
-                    self._valid_cells.clear()
-                    self.campo_dirty = True
+            elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
+                if self.dragging_dado is not None:
+                    if self.player is not None and hasattr(self.player, "drop_dado_em_attr"):
+                        self.player.drop_dado_em_attr(mouse_pos, self.dragging_dado)
+                    self.dragging_dado = None
                     continue
 
-                cell = self.in_cell(mouse_pos)
-                if cell and self.can_place(self.dragging, *cell):
-                    self.place(self.dragging, *cell)
-                    self.dragging.stop_drag()
-                    self.dragging = None
-                    self._valid_cells.clear()
-                else:
-                    self.dragging.stop_drag()
-                    self.banco.return_to_slot(self.dragging)
-                    self.dragging = None
-                    self._valid_cells.clear()
+                if self.dragging:
+                    if self.loja.sell_drop_here(mouse_pos):
+                        self.dragging.stop_drag()
+                        sell_value = 0
+                        if hasattr(self.loja, "sell_value_for_cartucho"):
+                            sell_value = self.loja.sell_value_for_cartucho(self.dragging)
+                        if hasattr(self.loja, "player") and self.loja.player is not None:
+                            self.loja.player.ouro = getattr(self.loja.player, "ouro", 0) + sell_value
+                        self.loja.deck_defs.append(self.dragging.to_def())
+                        self.dragging = None
+                        self._valid_cells.clear()
+                        self.campo_dirty = True
+                        continue
 
-            elif e.type == pygame.MOUSEMOTION and self.dragging:
-                self.dragging.drag_update(mouse_pos)
+                    cell = self.in_cell(mouse_pos)
+                    if cell and self.can_place(self.dragging, *cell):
+                        self.place(self.dragging, *cell)
+                        self.dragging.stop_drag()
+                        self.dragging = None
+                        self._valid_cells.clear()
+                    else:
+                        self.dragging.stop_drag()
+                        self.banco.return_to_slot(self.dragging)
+                        self.dragging = None
+                        self._valid_cells.clear()
+
+            elif e.type == pygame.MOUSEMOTION:
+                if self.dragging:
+                    self.dragging.drag_update(mouse_pos)
 
     # ---------------- draw ----------------
     def _draw_grid_base(self, surf):
@@ -506,6 +551,28 @@ class Grid:
 
 
 
+    def _draw_dragging_dado(self, surf, mouse_pos):
+        if not self.dragging_dado:
+            return
+        faces = list(self.dragging_dado.get("faces", []))[:6]
+        if not faces:
+            return
+
+        box = pygame.Rect(mouse_pos[0] + 14, mouse_pos[1] + 10, 170, 40)
+        pygame.draw.rect(surf, (18, 18, 24), box, border_radius=8)
+        pygame.draw.rect(surf, (230, 230, 240), box, 2, border_radius=8)
+
+        x = box.x + 8
+        y = box.y + 8
+        for face in faces:
+            sq = pygame.Rect(x, y, 24, 24)
+            pygame.draw.rect(surf, (28, 28, 38), sq, border_radius=4)
+            pygame.draw.rect(surf, (220, 220, 230), sq, 1, border_radius=4)
+            tx = self.fonte_hover_micro.render(str(face), True, (250, 250, 250))
+            surf.blit(tx, tx.get_rect(center=sq.center))
+            x += 26
+
+    
     def _all_visible_cartuchos(self):
         cards = []
 
@@ -536,7 +603,7 @@ class Grid:
         if not (self.banco and self.loja):
             return
 
-        panel_w, panel_h = 300, 220
+        panel_w, panel_h = 420, 220
         x = self.loja.rect.x - panel_w - 14
         y = self.banco.rect.y - panel_h - 8
         x = max(10, x)
@@ -575,5 +642,6 @@ class Grid:
         self._draw_placed_cartuchos(self.tela)
         self._draw_highlights(self.tela, mouse_pos, agora)
         self._draw_dragging(self.tela, mouse_pos)
+        self._draw_dragging_dado(self.tela, mouse_pos)
         hovered_cartucho = self._hovered_cartucho(mouse_pos)
         self._draw_hover_ficha(self.tela, hovered_cartucho)
