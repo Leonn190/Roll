@@ -489,9 +489,6 @@ class Grid:
 
     def _draw_banco(self, surf):
         self.banco.draw(surf, self.fonte_titulo)
-        for c in self.banco.slots:
-            if c and c is not self.dragging:
-                c.draw(surf, self.fonte_nome, self.fonte_carac, compact=False)
 
     def _draw_right_panel(self, surf):
         self.painel_sinergia.draw(surf, self.fonte_titulo, self.fonte_item, self.occ, player=self.player)
