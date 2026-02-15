@@ -84,7 +84,6 @@ def _render_wrapped_center(surf, font, text, color, rect):
 def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
     """Desenha a ficha de hover de personagem."""
     fonte_titulo = fontes["titulo"]
-    fonte_txt = fontes["txt"]
     fonte_micro = fontes["micro"]
 
     pygame.draw.rect(surf, (20, 20, 26), panel_rect, border_radius=12)
@@ -94,28 +93,28 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
     img = gerar_imagem_cartucho_grid(cartucho.dados, (portrait_rect.w, portrait_rect.h))
     surf.blit(img, portrait_rect.topleft)
 
+    info_x = portrait_rect.right + 10
     nome = fonte_titulo.render(cartucho.nome, True, (245, 245, 250))
-    surf.blit(nome, (portrait_rect.right + 10, panel_rect.y + 10))
+    surf.blit(nome, (info_x, panel_rect.y + 10))
 
     raridade = str(getattr(cartucho, "raridade", "comum") or "comum").upper()
     tr = fonte_micro.render(f"Raridade: {raridade}", True, _raridade_cor(cartucho))
-    surf.blit(tr, (portrait_rect.right + 10, panel_rect.y + 36))
+    rar_y = panel_rect.y + 38
+    surf.blit(tr, (info_x, rar_y))
 
     syns = list(getattr(cartucho, "sinergias", []) or [])
-    if syns:
-        if len(syns) > 2:
-            syn_linha1 = " / ".join(syns[:2])
-            syn_linha2 = " / ".join(syns[2:])
-            s1 = fonte_txt.render(syn_linha1, True, (210, 210, 225))
-            s2 = fonte_txt.render(syn_linha2, True, (210, 210, 225))
-            surf.blit(s1, (portrait_rect.right + 10, panel_rect.y + 56))
-            surf.blit(s2, (portrait_rect.right + 10, panel_rect.y + 76))
-        else:
-            syn = fonte_txt.render(" / ".join(syns), True, (210, 210, 225))
-            surf.blit(syn, (portrait_rect.right + 10, panel_rect.y + 62))
-    else:
-        syn = fonte_txt.render("Sem sinergia", True, (210, 210, 225))
-        surf.blit(syn, (portrait_rect.right + 10, panel_rect.y + 62))
+    syn_x = info_x + tr.get_width() + 12
+    syn_text = " / ".join(syns) if syns else "Sem sinergia"
+    syn_color = (210, 210, 225) if syns else (165, 165, 180)
+    syn_rect = pygame.Rect(
+        syn_x,
+        panel_rect.y + 8,
+        panel_rect.right - 12 - syn_x,
+        portrait_rect.bottom - panel_rect.y - 8,
+    )
+    if syn_rect.w > 20:
+        _render_wrapped_center(surf, fonte_micro, syn_text, syn_color, syn_rect)
+
 
     st = getattr(cartucho, "stats", {}) or {}
     atributos = []
@@ -131,7 +130,7 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
         t = fonte_micro.render(txt, True, (232, 232, 240))
         surf.blit(t, (left_x, ty))
 
-    desc_rect = pygame.Rect(panel_rect.x + 108, panel_rect.y + 110, panel_rect.w - 118, 96)
+    desc_rect = pygame.Rect(panel_rect.x + 108, panel_rect.y + 96, panel_rect.w - 118, 78)
     pygame.draw.rect(surf, (28, 28, 36), desc_rect, border_radius=8)
     pygame.draw.rect(surf, (75, 75, 95), desc_rect, 1, border_radius=8)
 
@@ -147,7 +146,7 @@ def draw_painel_personagem(surf, panel_rect, cartucho, fontes):
     dado = dado[:6]
 
     dado_bg = DICE_TYPE_COLOR.get(tipo, DICE_TYPE_COLOR[""])
-    dice_rect = pygame.Rect(panel_rect.x + 10, panel_rect.bottom - 44, panel_rect.w - 20, 30)
+    dice_rect = pygame.Rect(desc_rect.x, desc_rect.bottom + 8, desc_rect.w, 30)
     pygame.draw.rect(surf, dado_bg, dice_rect, border_radius=8)
     pygame.draw.rect(surf, (18, 18, 22), dice_rect, 2, border_radius=8)
 

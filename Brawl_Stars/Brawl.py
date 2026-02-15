@@ -27,6 +27,13 @@ CORES_RARIDADE = {
 UI_PRETO = (0, 0, 0)
 UI_BRANCO = (255, 255, 255)
 
+
+SPECIAL_IMAGE_SLUGS = {
+    "8-Bit": "8-bit",
+    "El Primo": "elprimo",
+    "Larry e Lawrie": "larry-lawrie",
+}
+
 # --- AJUSTES (como você pediu agora) ---
 BORDA_PRETA_ESP = 3          # borda fina PRETA (uma só)
 BARRA_NOME_ALPHA = 180       # faixa preta do nome MAIS OPACA
@@ -130,7 +137,7 @@ def carregar_cartuchos_de_csv(caminho_csv: str) -> list[dict]:
             if not nome_raw:
                 continue
 
-            slug = slugify_id(nome_raw)
+            slug = SPECIAL_IMAGE_SLUGS.get(nome_raw, slugify_id(nome_raw))
 
             # sinergias (somente as não vazias), na ordem 1..4
             sinergias = []
