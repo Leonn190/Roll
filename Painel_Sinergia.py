@@ -151,12 +151,8 @@ class PainelSinergia:
         for idx, d in enumerate(integrantes):
             row = idx // cols
             col = idx % cols
-            col_rtl = (cols - 1) - col
-            if row == rows - 1 and len(integrantes) % cols != 0:
-                used_cols_last_row = len(integrantes) % cols
-                col_rtl = (used_cols_last_row - 1) - col
 
-            xx = tip.x + pad + col_rtl * (icon_size + 6)
+            xx = tip.x + pad + col * (icon_size + 6)
             yy = y0 + row * (icon_size + 6)
             icon = gerar_imagem_cartucho_grid(d, (icon_size, icon_size)).copy()
             if not d.get("em_campo", False):
@@ -224,7 +220,7 @@ class PainelSinergia:
             surf.blit(t, (x, y))
             return
 
-        items.sort(key=lambda it: (-it[2], it[1].lower()))
+        items.sort(key=lambda it: (-it[4], -it[2], it[1].lower()))
         shown = 0
         mouse_pos = pygame.mouse.get_pos()
         for syn_norm, nome, _, raridade, n, is_active, has_on_grid in items:

@@ -36,6 +36,15 @@ LABELS = {
     "penetracao": "Penetração",
 }
 
+PERCENT_ICONS = {
+    "amp_dano": "AmpDano.png",
+    "red_dano": "RedDano.png",
+    "assertividade": "Asse.png",
+    "vampirismo": "Vamp.png",
+    "chance_crit": "CrC.png",
+    "dano_crit": "CrD.png",
+}
+
 PERCENT_LABELS = [
     ("amp_dano", "Amplificação de dano"),
     ("red_dano", "Redução de dano"),
@@ -435,6 +444,9 @@ class PlayerEstrategista:
 
         # stats percentuais (fixos inicialmente)
         self.percentuais = {k: 0 for k, _ in PERCENT_LABELS}
+        self.percentuais["assertividade"] = 100
+        self._percent_rects = {}
+        self._percent_icons = {}
 
         # fontes
         self._font_nome = None
@@ -465,6 +477,25 @@ class PlayerEstrategista:
         self._font_big = pygame.font.Font(self.FONTE_PATH, 36)
         self._font_micro = pygame.font.Font(self.FONTE_PATH, 16)
         self._font_tiny = pygame.font.Font(self.FONTE_PATH, 14)
+
+    def _get_percent_icon(self, key: str, size: int):
+        cache_key = (key, int(size))
+        if cache_key in self._percent_icons:
+            return self._percent_icons[cache_key]
+
+        fname = PERCENT_ICONS.get(key)
+        if not fname:
+            self._percent_icons[cache_key] = None
+            return None
+
+        path = os.path.join("Recursos", "Visual", "Icones", fname)
+        try:
+            icon = pygame.image.load(path).convert_alpha()
+            icon = pygame.transform.smoothscale(icon, (size, size))
+        except Exception:
+            icon = None
+        self._percent_icons[cache_key] = icon
+        return icon
 
     # ----------------------------
     # helpers stats
@@ -749,9 +780,39 @@ class PlayerEstrategista:
                     tela.blit(icon, (x0, y0))
                     x0 += icon_size + 4
 
-        py = grid_top + rows * cell_h + (rows - 1) * gap + 6
+        self._percent_rects = {}
+        py = grid_top + rows * cell_h + (rows - 1) * gap + 10
+        icon_size = 26
+        icon_gap = 9
+        px = cx + 2
         for key, label in PERCENT_LABELS:
             val = int(self.percentuais.get(key, 0))
-            txt = self._font_tiny.render(f"{label}: {val}%", True, (195, 195, 210))
-            tela.blit(txt, (cx + 2, py))
-            py += txt.get_height() + 1
+            icon = self._get_percent_icon(key, icon_size)
+            rect = pygame.Rect(px, py, icon_size, icon_size)
+
+            pygame.draw.rect(tela, (32, 32, 40), rect, border_radius=7)
+            pygame.draw.rect(tela, (90, 90, 110), rect, 1, border_radius=7)
+            if icon is not None:
+                tela.blit(icon, rect.topleft)
+            else:
+                fallback = self._font_tiny.render(str(val), True, (210, 210, 225))
+                tela.blit(fallback, fallback.get_rect(center=rect.center))
+
+            self._percent_rects[key] = rect
+            px += icon_size + icon_gap
+
+        for key, label in PERCENT_LABELS:
+            rect = self._percent_rects.get(key)
+            if rect and rect.collidepoint(mouse_pos):
+                val = int(self.percentuais.get(key, 0))
+                tip = self._font_tiny.render(f"{label}: {val}%", True, (245, 245, 250))
+                tip_rect = tip.get_rect()
+                box = pygame.Rect(mouse_pos[0] + 12, mouse_pos[1] + 10, tip_rect.w + 12, tip_rect.h + 8)
+                if box.right > tela.get_width() - 6:
+                    box.x = mouse_pos[0] - box.w - 12
+                if box.bottom > tela.get_height() - 6:
+                    box.y = mouse_pos[1] - box.h - 10
+                pygame.draw.rect(tela, (14, 14, 20), box, border_radius=8)
+                pygame.draw.rect(tela, (120, 120, 145), box, 1, border_radius=8)
+                tela.blit(tip, (box.x + 6, box.y + 4))
+                break
