@@ -36,6 +36,15 @@ LABELS = {
     "penetracao": "Penetração",
 }
 
+PERCENT_LABELS = [
+    ("amp_dano", "Amplificação de dano"),
+    ("red_dano", "Redução de dano"),
+    ("assertividade", "Assertividade"),
+    ("vampirismo", "Vampirismo"),
+    ("chance_crit", "Chance de crit"),
+    ("dano_crit", "Dano crit"),
+]
+
 
 def _lerp(a, b, t):
     return a + (b - a) * t
@@ -424,6 +433,9 @@ class PlayerEstrategista:
         self._attr_rects = {}
         self._drag_preview_dado = None
 
+        # stats percentuais (fixos inicialmente)
+        self.percentuais = {k: 0 for k, _ in PERCENT_LABELS}
+
         # fontes
         self._font_nome = None
         self._font_small = None
@@ -452,6 +464,7 @@ class PlayerEstrategista:
         self._font_small = pygame.font.Font(self.FONTE_PATH, 18)
         self._font_big = pygame.font.Font(self.FONTE_PATH, 36)
         self._font_micro = pygame.font.Font(self.FONTE_PATH, 16)
+        self._font_tiny = pygame.font.Font(self.FONTE_PATH, 14)
 
     # ----------------------------
     # helpers stats
@@ -676,7 +689,8 @@ class PlayerEstrategista:
         grid_top = cy
 
         cell_w = (w - self.PAD * 2 - gap * (cols - 1)) // cols
-        cell_h = (h - (grid_top - y) - self.PAD - gap * (rows - 1)) // rows
+        footer_h = 90
+        cell_h = (h - (grid_top - y) - self.PAD - footer_h - gap * (rows - 1)) // rows
 
         mouse_pos = pygame.mouse.get_pos()
         self._attr_rects = {}
@@ -734,3 +748,10 @@ class PlayerEstrategista:
                     icon = gerar_imagem_cartucho_grid(dados or {}, (icon_size, icon_size))
                     tela.blit(icon, (x0, y0))
                     x0 += icon_size + 4
+
+        py = grid_top + rows * cell_h + (rows - 1) * gap + 6
+        for key, label in PERCENT_LABELS:
+            val = int(self.percentuais.get(key, 0))
+            txt = self._font_tiny.render(f"{label}: {val}%", True, (195, 195, 210))
+            tela.blit(txt, (cx + 2, py))
+            py += txt.get_height() + 1

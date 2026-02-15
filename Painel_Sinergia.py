@@ -3,7 +3,7 @@ import pygame
 import colorsys
 from Loja import SHOP_SLOTS, SHOP_PAD, SHOP_GAP, SHOP_BUTTON_H
 from Banco import BANK_CARD_H
-from Brawl_Stars.Brawl import DECK_DEFS, gerar_imagem_cartucho_grid
+from Brawl_Stars.Brawl import DECK_DEFS, CORES_RARIDADE, gerar_imagem_cartucho_grid
 
 RIGHT_PANEL_W = 240
 SYNERGY_PANEL_H = 360
@@ -15,6 +15,15 @@ TEXT = (245, 245, 245)
 TEXT_SUB = (210, 210, 220)
 
 SYNERGY_THRESHOLD = 2  # mantido (mas agora o painel pode usar as conectadas do player)
+
+RARITY_ORDER = {
+    "comum": 0,
+    "incomum": 1,
+    "raro": 2,
+    "épico": 3,
+    "mítico": 4,
+    "lendário": 5,
+}
 
 def draw_round_rect(surf, color, rect, width=0, radius=12):
     pygame.draw.rect(surf, color, rect, width, border_radius=radius)
@@ -58,7 +67,28 @@ class PainelSinergia:
         self._item_rects = {}
         self._tooltip = None
         self._all_brawlers_defs = list(DECK_DEFS)
+        self._synergy_meta = self._build_synergy_meta(self._all_brawlers_defs)
         self._recalc_layout()
+
+    def _build_synergy_meta(self, brawlers_defs):
+        meta = {}
+        for d in brawlers_defs:
+            raridade = str(d.get("raridade", "comum")).strip().lower()
+            ordem = RARITY_ORDER.get(raridade, 0)
+            for s in (d.get("características", []) or []):
+                nome = str(s).strip()
+                if not nome:
+                    continue
+                key = _norm_sym(nome)
+                it = meta.setdefault(key, {
+                    "nome": nome,
+                    "raridade": raridade,
+                    "ordem": ordem,
+                })
+                if ordem > it["ordem"]:
+                    it["ordem"] = ordem
+                    it["raridade"] = raridade
+        return meta
 
     def _draw_synergy_tooltip(self, surf, font_item, mouse_pos):
         if not self._tooltip:
@@ -108,7 +138,9 @@ class PainelSinergia:
             yy = y0 + row * (icon_size + 6)
             icon = gerar_imagem_cartucho_grid(d, (icon_size, icon_size))
             surf.blit(icon, (xx, yy))
-            pygame.draw.rect(surf, (70, 70, 90), pygame.Rect(xx, yy, icon_size, icon_size), 1, border_radius=6)
+            raridade = str(d.get("raridade", "comum")).strip().lower()
+            borda = CORES_RARIDADE.get(raridade, (70, 70, 90))
+            pygame.draw.rect(surf, borda, pygame.Rect(xx, yy, icon_size, icon_size), 2, border_radius=6)
 
     def _recalc_layout(self):
         W = self.tela.get_width()
@@ -133,7 +165,7 @@ class PainelSinergia:
         self.hovered_synergy = None
         self._tooltip = None
 
-        # base: todas as sinergias em campo
+        # base: sinergias em campo
         total_counts = {}
         for cartucho in grid_occ.values():
             for s in getattr(cartucho, "sinergias", []):
@@ -143,27 +175,49 @@ class PainelSinergia:
         if player is not None and hasattr(player, "sinergias_ativas") and isinstance(player.sinergias_ativas, dict):
             active_counts = {k: int(v) for k, v in player.sinergias_ativas.items()}
 
-        if not total_counts:
+        items = []
+        for syn_norm, meta in self._synergy_meta.items():
+            qtd = int(total_counts.get(syn_norm, 0))
+            is_active = syn_norm in active_counts
+            has_on_grid = qtd > 0
+            items.append((
+                syn_norm,
+                str(meta.get("nome", syn_norm)).title(),
+                int(meta.get("ordem", 0)),
+                str(meta.get("raridade", "comum")).lower(),
+                qtd,
+                is_active,
+                has_on_grid,
+            ))
+
+        if not items:
             t = font_item.render("Nenhuma ainda.", True, TEXT_SUB)
             surf.blit(t, (x, y))
             return
 
-        items = sorted(total_counts.items(), key=lambda kv: (-kv[1], str(kv[0]).lower()))
+        items.sort(key=lambda it: (-it[2], it[1].lower()))
         shown = 0
         mouse_pos = pygame.mouse.get_pos()
-        for syn, n in items:
+        for syn_norm, nome, _, raridade, n, is_active, has_on_grid in items:
             if shown >= 10:
                 break
 
-            syn_norm = _norm_sym(syn)
-            is_active = syn_norm in active_counts
-            color = _color_for_synergy(syn) if is_active else (255, 255, 255)
+            if has_on_grid:
+                color = _color_for_synergy(nome) if is_active else (220, 220, 235)
+            else:
+                color = (110, 110, 125)
 
             shown_n = active_counts.get(syn_norm, n) if is_active else n
-            texto = f"{str(syn).title()}  [{shown_n}]"
+            texto = f"{nome}  [{shown_n}]"
             ts = font_item.render(texto, True, color)
-            item_rect = ts.get_rect(topleft=(x, y))
-            _draw_text_with_outline(surf, font_item, texto, color, (0, 0, 0), item_rect.topleft, esp=1)
+            icon_rect = pygame.Rect(x, y + 3, 14, 14)
+            icon_color = color if has_on_grid else (80, 80, 96)
+            pygame.draw.rect(surf, icon_color, icon_rect, border_radius=4)
+            pygame.draw.rect(surf, CORES_RARIDADE.get(raridade, (70, 70, 90)), icon_rect, 2, border_radius=4)
+
+            text_pos = (x + 22, y)
+            item_rect = ts.get_rect(topleft=text_pos)
+            _draw_text_with_outline(surf, font_item, texto, color, (0, 0, 0), text_pos, esp=1)
             self._item_rects[syn_norm] = item_rect
             if item_rect.collidepoint(mouse_pos):
                 self.hovered_synergy = syn_norm
@@ -174,7 +228,7 @@ class PainelSinergia:
                         integrantes.append(d)
 
                 self._tooltip = {
-                    "titulo": f"{str(syn).title()} ({len(integrantes)})",
+                    "titulo": f"{nome} ({len(integrantes)})",
                     "integrantes": integrantes,
                 }
 

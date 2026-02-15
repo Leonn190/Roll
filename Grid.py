@@ -642,6 +642,9 @@ class Grid:
             },
         )
 
+    def draw_dragging_dado_overlay(self, surf, mouse_pos):
+        self._draw_dragging_dado(surf, mouse_pos)
+
     # ---------------- main ----------------
     def update(self, events, agora, mouse_pos):
         self._handle_events(events, mouse_pos)
@@ -663,6 +666,5 @@ class Grid:
         self._draw_placed_cartuchos(self.tela)
         self._draw_highlights(self.tela, mouse_pos, agora)
         self._draw_dragging(self.tela, mouse_pos)
-        self._draw_dragging_dado(self.tela, mouse_pos)
         hovered_cartucho = self._hovered_cartucho(mouse_pos)
         self._draw_hover_ficha(self.tela, hovered_cartucho)
