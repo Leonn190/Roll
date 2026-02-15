@@ -1,6 +1,8 @@
 # Painel_Sinergia.py
 import pygame
 import colorsys
+from Loja import SHOP_SLOTS, SHOP_PAD, SHOP_GAP, SHOP_BUTTON_H
+from Banco import BANK_CARD_H
 
 RIGHT_PANEL_W = 240
 SYNERGY_PANEL_H = 360
@@ -22,22 +24,10 @@ def draw_round_rect(surf, color, rect, width=0, radius=12):
 def _norm_sym(x) -> str:
     return str(x).strip().lower()
 
-_SYNERGY_COLORS = {
-    "controle":   (90, 170, 255),
-    "explosão":   (255, 110, 110),
-    "explosao":   (255, 110, 110),
-    "tanque":     (110, 255, 160),
-    "velocidade": (255, 200, 110),
-    "atirador":   (200, 140, 255),
-    "invocador":  (120, 240, 255),
-    "brawler":    (255, 160, 220),
-}
-
 def _color_for_synergy(sym: str):
     s = _norm_sym(sym)
-    if s in _SYNERGY_COLORS:
-        return _SYNERGY_COLORS[s]
-    # fallback determinístico (igual ao da grid)
+
+    # algoritmo determinístico igual ao da grid
     h = 0
     for ch in s:
         h = (h * 131 + ord(ch)) & 0xFFFFFFFF
@@ -50,11 +40,16 @@ class PainelSinergia:
     def __init__(self, tela):
         self.tela = tela
         self.rect = pygame.Rect(0, 0, 10, 10)
+        self.hovered_synergy = None
+        self._item_rects = {}
         self._recalc_layout()
 
     def _recalc_layout(self):
         W = self.tela.get_width()
-        self.rect = pygame.Rect(W - RIGHT_PANEL_W, 0, RIGHT_PANEL_W, SYNERGY_PANEL_H)
+        H = self.tela.get_height()
+        shop_h = (SHOP_PAD * 2 + SHOP_SLOTS * BANK_CARD_H + (SHOP_SLOTS - 1) * SHOP_GAP + SHOP_BUTTON_H + 60)
+        painel_h = max(SYNERGY_PANEL_H, H - shop_h)
+        self.rect = pygame.Rect(W - RIGHT_PANEL_W, 0, RIGHT_PANEL_W, painel_h)
 
     # NOVO: relação direta com o PlayerEstrategista (se fornecido)
     def draw(self, surf, font_title, font_item, grid_occ: dict, player=None):
@@ -68,33 +63,43 @@ class PainelSinergia:
         surf.blit(title, (x, y))
         y += 46
 
-        # Se tiver player, prioriza as sinergias CONECTADAS (ativas) dele
-        if player is not None and hasattr(player, "sinergias_ativas") and isinstance(player.sinergias_ativas, dict):
-            counts = dict(player.sinergias_ativas)
-        else:
-            # fallback: contagem simples (mantido)
-            counts = {}
-            for cartucho in grid_occ.values():
-                for s in getattr(cartucho, "sinergias", []):
-                    counts[s] = counts.get(s, 0) + 1
+        self._item_rects.clear()
+        self.hovered_synergy = None
 
-        if not counts:
+        # base: todas as sinergias em campo
+        total_counts = {}
+        for cartucho in grid_occ.values():
+            for s in getattr(cartucho, "sinergias", []):
+                total_counts[s] = total_counts.get(s, 0) + 1
+
+        active_counts = {}
+        if player is not None and hasattr(player, "sinergias_ativas") and isinstance(player.sinergias_ativas, dict):
+            active_counts = {k: int(v) for k, v in player.sinergias_ativas.items()}
+
+        if not total_counts:
             t = font_item.render("Nenhuma ainda.", True, TEXT_SUB)
             surf.blit(t, (x, y))
             return
 
-        items = sorted(counts.items(), key=lambda kv: (-kv[1], str(kv[0]).lower()))
+        items = sorted(total_counts.items(), key=lambda kv: (-kv[1], str(kv[0]).lower()))
         shown = 0
+        mouse_pos = pygame.mouse.get_pos()
         for syn, n in items:
             if shown >= 10:
                 break
 
-            # cor = mesma da grid (sem amarelo/inativo)
-            color = _color_for_synergy(syn)
+            syn_norm = _norm_sym(syn)
+            is_active = syn_norm in active_counts
+            color = _color_for_synergy(syn) if is_active else (255, 255, 255)
 
-            # (mantém threshold pra “sugerir” ativo/inativo só no texto, sem mudar cor)
-            tag = "" if int(n) >= SYNERGY_THRESHOLD else " (fraca)"
-            s = font_item.render(f"{syn}  ({n}){tag}", True, color)
-            surf.blit(s, (x, y))
+            active_n = active_counts.get(syn_norm, 0)
+            tag = f" ({active_n})" if is_active else ""
+            s = font_item.render(f"{str(syn).title()}  [{n}]{tag}", True, color)
+            item_rect = s.get_rect(topleft=(x, y))
+            surf.blit(s, item_rect.topleft)
+            self._item_rects[syn_norm] = item_rect
+            if item_rect.collidepoint(mouse_pos):
+                self.hovered_synergy = syn_norm
+
             y += 28
             shown += 1

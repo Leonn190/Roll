@@ -1,4 +1,5 @@
 import pygame
+import os
 import random
 import math
 from collections import deque
@@ -274,7 +275,7 @@ class Tabuleiro:
         pygame.draw.rect(surf, borda, r, 4, border_radius=12)
 
         # número
-        font = pygame.font.SysFont(None, int(tam * 0.75), bold=True)
+        font = pygame.font.Font(os.path.join("Fontes", "FontePadrão.ttf"), int(tam * 0.75))
         txt_shadow = font.render(str(face), True, (0, 0, 0))
         txt = font.render(str(face), True, (255, 255, 255))
 
