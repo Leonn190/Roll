@@ -132,10 +132,10 @@ class Grid:
         # NOVO: referência opcional ao PlayerEstrategista (para painel e futuras migrações)
         self.player = None
 
-        self.fonte_titulo = pygame.font.SysFont(None, 34, bold=True)
-        self.fonte_item   = pygame.font.SysFont(None, 26, bold=True)
-        self.fonte_nome   = pygame.font.SysFont(None, 22, bold=True)
-        self.fonte_carac  = pygame.font.SysFont(None, 18, bold=True)
+        self.fonte_titulo = pygame.font.Font(None, 34)
+        self.fonte_item   = pygame.font.Font(None, 26)
+        self.fonte_nome   = pygame.font.Font(None, 22)
+        self.fonte_carac  = pygame.font.Font(None, 18)
 
         self._valid_cells = set()
         self._active_cache = None
@@ -363,6 +363,11 @@ class Grid:
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1 and self.dragging:
                 if self.loja.sell_drop_here(mouse_pos):
                     self.dragging.stop_drag()
+                    sell_value = 0
+                    if hasattr(self.loja, "sell_value_for_cartucho"):
+                        sell_value = self.loja.sell_value_for_cartucho(self.dragging)
+                    if hasattr(self.loja, "player") and self.loja.player is not None:
+                        self.loja.player.ouro = getattr(self.loja.player, "ouro", 0) + sell_value
                     self.loja.deck_defs.append(self.dragging.to_def())
                     self.dragging = None
                     self._valid_cells.clear()
