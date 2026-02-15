@@ -2,6 +2,7 @@
 import pygame
 import math
 import colorsys
+import os
 
 # ============================================================
 # CONFIG
@@ -58,46 +59,18 @@ def draw_glow_rect(surf, rect, color, strength=1.0):
 
 
 # ============================================================
-# CORES POR SINERGIA (SEM PREDEFINIÇÃO)
-# - geradas "na hora", mas estáveis e diferentes entre si
+# CORES POR SINERGIA (MESMO ALGORITMO DO PAINEL)
 # ============================================================
-def _hash32(s: str) -> int:
-    # FNV-1a 32-bit (determinístico)
-    h = 2166136261
-    for ch in s:
-        h ^= ord(ch)
-        h = (h * 16777619) & 0xFFFFFFFF
-    return h
-
-def _hue_dist(a: float, b: float) -> float:
-    d = abs(a - b) % 1.0
-    return min(d, 1.0 - d)
-
-def _color_from_hue(hue: float):
-    r, g, b = colorsys.hsv_to_rgb(hue % 1.0, 0.70, 1.00)
-    return (int(r * 255), int(g * 255), int(b * 255))
-
-def _assign_distinct_hue(base_hue: float, used_hues: list[float], min_dist: float = 0.10) -> float:
-    # tenta manter bem diferente das já usadas; gira por golden ratio se necessário
-    hue = base_hue % 1.0
-    if not used_hues:
-        return hue
-    golden = 0.61803398875
-    for _ in range(40):
-        if all(_hue_dist(hue, uh) >= min_dist for uh in used_hues):
-            return hue
-        hue = (hue + golden) % 1.0
-    return hue
-
-def _color_for_synergy(sym: str, cache: dict, used_hues: list):
+def _color_for_synergy(sym: str, cache: dict):
     s = _norm_sym(sym)
     if s in cache:
         return cache[s]
-    h = _hash32(s)
-    base_hue = (h % 360) / 360.0
-    hue = _assign_distinct_hue(base_hue, used_hues, min_dist=0.12)
-    used_hues.append(hue)
-    col = _color_from_hue(hue)
+    h = 0
+    for ch in s:
+        h = (h * 131 + ord(ch)) & 0xFFFFFFFF
+    hue = (h % 360) / 360.0
+    r, g, b = colorsys.hsv_to_rgb(hue, 0.60, 1.00)
+    col = (int(r * 255), int(g * 255), int(b * 255))
     cache[s] = col
     return col
 
@@ -132,10 +105,11 @@ class Grid:
         # NOVO: referência opcional ao PlayerEstrategista (para painel e futuras migrações)
         self.player = None
 
-        self.fonte_titulo = pygame.font.Font(None, 34)
-        self.fonte_item   = pygame.font.Font(None, 26)
-        self.fonte_nome   = pygame.font.Font(None, 22)
-        self.fonte_carac  = pygame.font.Font(None, 18)
+        self.fonte_path = os.path.join("Fontes", "FontePadrão.ttf")
+        self.fonte_titulo = pygame.font.Font(self.fonte_path, 34)
+        self.fonte_item   = pygame.font.Font(self.fonte_path, 26)
+        self.fonte_nome   = pygame.font.Font(self.fonte_path, 22)
+        self.fonte_carac  = pygame.font.Font(self.fonte_path, 18)
 
         self._valid_cells = set()
         self._active_cache = None
@@ -442,28 +416,31 @@ class Grid:
 
         return edges
 
-    def _draw_synergy_outlines(self, surf, active_pos: dict):
+    def _draw_synergy_outlines(self, surf, active_pos: dict, agora_ms: int, hovered_synergy: str | None = None):
         if not active_pos:
             return
 
         thick = SYNERGY_STROKE
         rad = max(2, thick // 2)
 
-        # garante cores "diferentes" no runtime (sem tabela fixa)
-        used_hues = []
-        # ordem estável (e previsível) — importante pra sobreposição parecer consistente
+        # ordem estável para sobreposição previsível
         items = sorted(active_pos.items(), key=lambda kv: kv[0])
+
+        hover_blink = _blink_strength(agora_ms, period_ms=360)
 
         for sym, pos_set in items:
             if not pos_set:
                 continue
-            color = _color_for_synergy(sym, self._syn_color_cache, used_hues)
+            color = _color_for_synergy(sym, self._syn_color_cache)
+            is_hover = hovered_synergy is not None and _norm_sym(sym) == _norm_sym(hovered_synergy)
+            draw_thick = thick + 4 if is_hover else thick
+            draw_color = (255, 255, 255) if is_hover and hover_blink > 0.45 else color
 
             for comp in self._components_4(set(pos_set)):
                 for (x1, y1, x2, y2) in self._perimeter_edges(comp):
-                    pygame.draw.line(surf, color, (x1, y1), (x2, y2), thick)
-                    pygame.draw.circle(surf, color, (x1, y1), rad)
-                    pygame.draw.circle(surf, color, (x2, y2), rad)
+                    pygame.draw.line(surf, draw_color, (x1, y1), (x2, y2), draw_thick)
+                    pygame.draw.circle(surf, draw_color, (x1, y1), max(2, draw_thick // 2))
+                    pygame.draw.circle(surf, draw_color, (x2, y2), max(2, draw_thick // 2))
 
     def _draw_placed_cartuchos(self, surf):
         for (c, r), cartucho in self.occ.items():
@@ -518,11 +495,13 @@ class Grid:
         self.tela.fill(BG)
         self._draw_grid_base(self.tela)
 
+        self._draw_banco(self.tela)
+        self._draw_right_panel(self.tela)
+
         active = self._get_active_cached(agora)
-        self._draw_synergy_outlines(self.tela, active)
+        hovered = getattr(self.painel_sinergia, "hovered_synergy", None) if self.painel_sinergia else None
+        self._draw_synergy_outlines(self.tela, active, agora, hovered)
 
         self._draw_placed_cartuchos(self.tela)
         self._draw_highlights(self.tela, mouse_pos, agora)
-        self._draw_banco(self.tela)
-        self._draw_right_panel(self.tela)
         self._draw_dragging(self.tela, mouse_pos)

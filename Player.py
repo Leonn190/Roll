@@ -230,17 +230,10 @@ class PlayerBatalha:
         if self._font_nome is not None:
             return
 
-        # fallback: se não achar o TTF, cai no SysFont sem quebrar
-        if os.path.exists(self.FONTE_PATH):
-            self._font_nome = pygame.font.Font(self.FONTE_PATH, 32)
-            self._font_hp = pygame.font.Font(self.FONTE_PATH, 26)
-            self._font_small = pygame.font.Font(self.FONTE_PATH, 18)
-            self._font_big = pygame.font.Font(self.FONTE_PATH, 40)
-        else:
-            self._font_nome = pygame.font.SysFont(None, 36, bold=True)
-            self._font_hp = pygame.font.SysFont(None, 30, bold=True)
-            self._font_small = pygame.font.SysFont(None, 22, bold=True)
-            self._font_big = pygame.font.SysFont(None, 40, bold=True)
+        self._font_nome = pygame.font.Font(self.FONTE_PATH, 32)
+        self._font_hp = pygame.font.Font(self.FONTE_PATH, 26)
+        self._font_small = pygame.font.Font(self.FONTE_PATH, 18)
+        self._font_big = pygame.font.Font(self.FONTE_PATH, 40)
 
     # ----------------------------
     # eventos: clique nos botões de atributo
@@ -447,18 +440,11 @@ class PlayerEstrategista:
         if self._font_nome is not None:
             return
 
-        if os.path.exists(self.FONTE_PATH):
-            self._font_nome = pygame.font.Font(self.FONTE_PATH, 30)
-            self._font_hp = pygame.font.Font(self.FONTE_PATH, 24)
-            self._font_small = pygame.font.Font(self.FONTE_PATH, 18)
-            self._font_big = pygame.font.Font(self.FONTE_PATH, 36)
-            self._font_micro = pygame.font.Font(self.FONTE_PATH, 16)
-        else:
-            self._font_nome = pygame.font.SysFont(None, 34, bold=True)
-            self._font_hp = pygame.font.SysFont(None, 28, bold=True)
-            self._font_small = pygame.font.SysFont(None, 22, bold=True)
-            self._font_big = pygame.font.SysFont(None, 40, bold=True)
-            self._font_micro = pygame.font.SysFont(None, 18, bold=True)
+        self._font_nome = pygame.font.Font(self.FONTE_PATH, 30)
+        self._font_hp = pygame.font.Font(self.FONTE_PATH, 24)
+        self._font_small = pygame.font.Font(self.FONTE_PATH, 18)
+        self._font_big = pygame.font.Font(self.FONTE_PATH, 36)
+        self._font_micro = pygame.font.Font(self.FONTE_PATH, 16)
 
     # ----------------------------
     # helpers stats
@@ -642,24 +628,6 @@ class PlayerEstrategista:
         tela.blit(vida_s, vida_s.get_rect(center=bar.center))
 
         cy += bar_h + 10
-
-        # Sinergias conectadas (curtinho, não lota)
-        sy = sorted(self.sinergias_ativas.items(), key=lambda kv: (-kv[1], kv[0]))
-        title = self._font_small.render("Conectadas:", True, (235, 235, 235))
-        tela.blit(title, (cx, cy))
-        cy += title.get_height() + 6
-
-        if not sy:
-            none_s = self._font_micro.render("—", True, (170, 170, 180))
-            tela.blit(none_s, (cx, cy))
-            cy += none_s.get_height() + 10
-        else:
-            # mostra só as top 6 pra não virar parede de texto
-            for (name, count) in sy[:6]:
-                line = self._font_micro.render(f"{name.title()}  x{count}", True, (210, 210, 220))
-                tela.blit(line, (cx, cy))
-                cy += line.get_height() + 2
-            cy += 6
 
         # Grid 2x4 com atributos
         cols, rows = 2, 4
