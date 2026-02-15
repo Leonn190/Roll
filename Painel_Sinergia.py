@@ -55,7 +55,35 @@ class PainelSinergia:
         self.rect = pygame.Rect(0, 0, 10, 10)
         self.hovered_synergy = None
         self._item_rects = {}
+        self._tooltip = None
         self._recalc_layout()
+
+    def _draw_synergy_tooltip(self, surf, font_item, mouse_pos):
+        if not self._tooltip:
+            return
+
+        titulo, integrantes = self._tooltip
+        linhas = [titulo] + integrantes
+        renders = [font_item.render(txt, True, TEXT) for txt in linhas]
+
+        w = max(r.get_width() for r in renders) + 20
+        h = sum(r.get_height() for r in renders) + 14 + (len(renders) - 1) * 4
+
+        tip = pygame.Rect(mouse_pos[0] + 16, mouse_pos[1] + 14, w, h)
+        if tip.right > surf.get_width() - 8:
+            tip.x = mouse_pos[0] - w - 16
+        if tip.bottom > surf.get_height() - 8:
+            tip.y = surf.get_height() - h - 8
+
+        draw_round_rect(surf, (15, 15, 20), tip, 0, 10)
+        pygame.draw.rect(surf, (120, 120, 140), tip, 2, border_radius=10)
+
+        yy = tip.y + 7
+        for i, rr in enumerate(renders):
+            surf.blit(rr, (tip.x + 10, yy))
+            yy += rr.get_height() + 4
+            if i == 0:
+                pygame.draw.line(surf, (90, 90, 110), (tip.x + 8, yy - 2), (tip.right - 8, yy - 2), 1)
 
     def _recalc_layout(self):
         W = self.tela.get_width()
@@ -78,6 +106,7 @@ class PainelSinergia:
 
         self._item_rects.clear()
         self.hovered_synergy = None
+        self._tooltip = None
 
         # base: todas as sinergias em campo
         total_counts = {}
@@ -113,6 +142,18 @@ class PainelSinergia:
             self._item_rects[syn_norm] = item_rect
             if item_rect.collidepoint(mouse_pos):
                 self.hovered_synergy = syn_norm
+                integrantes = []
+                for c in grid_occ.values():
+                    sinergias = [str(s).strip().lower() for s in getattr(c, "sinergias", [])]
+                    if syn_norm in sinergias:
+                        integrantes.append(str(getattr(c, "nome", "???")).title())
+                integrantes = sorted(set(integrantes))
+                if integrantes:
+                    self._tooltip = (f"{str(syn).title()} ({len(integrantes)})", integrantes)
+                else:
+                    self._tooltip = (f"{str(syn).title()} (0)", ["Sem integrantes no campo"])
 
             y += 24
             shown += 1
+
+        self._draw_synergy_tooltip(surf, font_item, mouse_pos)

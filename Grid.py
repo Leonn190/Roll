@@ -5,6 +5,7 @@ import colorsys
 import os
 
 from Painel_Personagem import draw_painel_personagem
+from Brawl_Stars.Brawl import gerar_imagem_cartucho_grid
 
 
 # ============================================================
@@ -129,6 +130,7 @@ class Grid:
 
         # arrasto de dado (da grade para a ficha do player)
         self.dragging_dado = None
+        self._dragging_dado_icon = None
 
     # ---------------- API para a Tela_Estrategista / Player
     def get_cartuchos_em_campo(self):
@@ -287,6 +289,16 @@ class Grid:
     def can_place(self, cartucho, c, r):
         if not (0 <= c < self.cols and 0 <= r < self.rows) or (c, r) in self.occ:
             return False
+
+        # Impede duplicar o mesmo personagem no campo.
+        new_id = str(getattr(cartucho, "id", "") or "").strip().lower()
+        new_nome = str(getattr(cartucho, "nome", "") or "").strip().lower()
+        for existente in self.occ.values():
+            ex_id = str(getattr(existente, "id", "") or "").strip().lower()
+            ex_nome = str(getattr(existente, "nome", "") or "").strip().lower()
+            if (new_id and ex_id == new_id) or (new_nome and ex_nome == new_nome):
+                return False
+
         if not self.occ:
             return True
 
@@ -357,6 +369,10 @@ class Grid:
                     dado_pick = self._pick_dado_cartucho_grid(mouse_pos)
                     if dado_pick is not None:
                         self.dragging_dado = dado_pick
+                        cartucho = dado_pick.get("cartucho")
+                        self._dragging_dado_icon = gerar_imagem_cartucho_grid(getattr(cartucho, "dados", {}) or {}, (42, 42))
+                        if self.player is not None and hasattr(self.player, "set_dado_drag_preview"):
+                            self.player.set_dado_drag_preview(dado_pick)
                         continue
 
                     if self.loja.btn_reroll.collidepoint(mouse_pos):
@@ -382,6 +398,9 @@ class Grid:
                     if self.player is not None and hasattr(self.player, "drop_dado_em_attr"):
                         self.player.drop_dado_em_attr(mouse_pos, self.dragging_dado)
                     self.dragging_dado = None
+                    self._dragging_dado_icon = None
+                    if self.player is not None and hasattr(self.player, "set_dado_drag_preview"):
+                        self.player.set_dado_drag_preview(None)
                     continue
 
                 if self.dragging:
@@ -554,23 +573,18 @@ class Grid:
     def _draw_dragging_dado(self, surf, mouse_pos):
         if not self.dragging_dado:
             return
-        faces = list(self.dragging_dado.get("faces", []))[:6]
-        if not faces:
+        cartucho = self.dragging_dado.get("cartucho")
+        if not cartucho:
             return
 
-        box = pygame.Rect(mouse_pos[0] + 14, mouse_pos[1] + 10, 170, 40)
-        pygame.draw.rect(surf, (18, 18, 24), box, border_radius=8)
-        pygame.draw.rect(surf, (230, 230, 240), box, 2, border_radius=8)
+        if self._dragging_dado_icon is None:
+            self._dragging_dado_icon = gerar_imagem_cartucho_grid(getattr(cartucho, "dados", {}) or {}, (42, 42))
 
-        x = box.x + 8
-        y = box.y + 8
-        for face in faces:
-            sq = pygame.Rect(x, y, 24, 24)
-            pygame.draw.rect(surf, (28, 28, 38), sq, border_radius=4)
-            pygame.draw.rect(surf, (220, 220, 230), sq, 1, border_radius=4)
-            tx = self.fonte_hover_micro.render(str(face), True, (250, 250, 250))
-            surf.blit(tx, tx.get_rect(center=sq.center))
-            x += 26
+        icon = self._dragging_dado_icon
+        box = icon.get_rect(center=(mouse_pos[0] + 18, mouse_pos[1] + 8))
+        glow = box.inflate(10, 10)
+        pygame.draw.rect(surf, (255, 255, 255), glow, 1, border_radius=6)
+        surf.blit(icon, box)
 
     
     def _all_visible_cartuchos(self):
