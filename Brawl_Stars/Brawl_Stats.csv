@@ -1,99 +1,99 @@
-Nome,Vida,Dano fisico,Dano Especial,Defesa fisica,Defesa especial,Mana,Regeneração,Velocidade,Perfuração,total,Raridade,Sinergia 1,Sinergia 2,Sinergia 3,Sinergia 4
-8-Bit,480,,70,70,40,,,,,180,Raro,Suporte,Robotico,,
-Alli,,,,,,,,,,,Comum,Assassino,Bosque,,
-Amber,290,80,80,,,30,,,,190,Lendario,Controle,Dizimador,,
-Angelo,280,,100,,,,40,,20,160,Epico,Sniper,Nossivo,Bosque,
-Ash,400,70,,90,50,,,,,210,Epico,Tanque,Parque,,
-Barley,260,,60,,,60,50,,,170,Incomum,Detonador,Robotico,,
-Bea,250,60,40,,,,,,70,170,Incomum,Sniper,Animalia,,
-Belle,270,,50,,,70,,20,,140,Comum,Sniper,Saqueador,,
-Berry,280,,30,,40,80,,,,150,Raro,Curandeiro,Detonador,Doceiro,
-Bibi,520,50,,,,,100,60,,210,Epico,Lutador,Cidade,,
-Bo,360,60,,,,50,,,70,180,Epico,Artilheiro,Controle,,
-Bonnie,400,50,,60,,,,,60,170,Raro,Tanque,Sniper,Estrelas,
-Brock,270,90,30,,,,,10,,130,Incomum,Sniper,Agencia,,
-Bull,530,90,,40,,,30,,,160,Epico,Brutamontes,Velho Oeste,,
-Buster,480,,50,,60,,,,30,140,Incomum,Brutamontes,Estrelas,,
-Buzz,490,30,,30,,,60,,,120,Raro,Brutamontes,Aquatico,,
-Byron,290,,40,,,70,70,,,180,Mitico,Nossivo,Curandeiro,,
-Carl,340,60,,60,,,,60,,180,Comum,Areia,Demolidor,,
-Charlie,300,,,,50,60,70,,,180,Raro,Sinistro,Controle,,
-Chester,320,50,50,,,100,,,,200,Comum,Artilheiro,Doceiro,,
-Chucky,420,,,70,70,,,30,,170,Epico,Tanque,Velocista,,
-Clancy,310,70,,,,,,70,10,150,Incomum,Animalia,Artilheiro,,
-Collete,290,,50,,,,,50,50,150,Incomum,Parque,Dizimador,,
-Colt,300,50,,,,,,60,80,190,Incomum,Velho Oeste,Artilheiro,,
-Cordellius,310,,90,,,10,,70,,170,Raro,Bosque,Dizimador,,
-Corvo,240,,30,,,,,100,80,210,Lendario,Nossivo,Animalia,Agencia,
-Darryl,440,40,,80,,,,30,,150,Comum,Tanque,Saqueador,,
-Doug,460,,,60,60,,60,,,180,Raro,Protetor,Suporte,Aquatico,
-Draco,390,,20,70,70,,,,,160,Raro,Tanque,Estrelas,,
-Dynamike,250,110,10,,,20,,,,140,Raro,Detonador,Velho Oeste,,
-Edgar,300,60,,,,,30,90,,180,Incomum,Assassino,Cidade,,
-El Primo,560,20,,20,,,40,,,80,Incomum,Lutador,Brutamontes,Cidade,
-Emz,320,,80,,,70,10,,,160,Raro,Nossivo,Controle,,
-Eugenio,300,,20,,50,70,,,,140,Incomum,Suporte,Areia,,
-Eve,290,40,40,,,,70,,,150,Raro,Invocador,Driade,,
-Fang,370,70,,,,,,70,50,190,Raro,Lutador,Estrelas,,
-Finx,300,,60,40,,80,,,,180,Lendario,Controle,Areia,,
-Frank,600,30,,20,20,,,,,70,Epico,Brutamontes,Sinistro,,
-Gale,320,,10,,40,50,,,,100,Raro,Suporte,Gelido,,
-Gigi,350,,,,20,30,,80,,130,Incomum,Lutador,Sinistro,,
-Glowbert,410,,,,80,,40,30,,150,Raro,Protetor,Suporte,Aquatico,
-Gray,270,,50,,,70,,,50,170,Epico,Sniper,Sinistro,,
-Griff,300,120,,10,10,,,,,140,Raro,Parque,Dizimador,,
-Grom,330,40,,60,60,,,,,160,Epico,Detonador,Demolidor,,
-Gus,290,,,,70,70,30,,,170,Raro,Sniper,Suporte,,
-Hank,500,,,100,20,,,,40,160,Raro,Tanque,Aquatico,,
-Jacky,,,,,,,,,,,Incomum,Tanque,Cidade,,
-Janet,320,,70,,,50,,,50,170,Mitico,Estrelas,Controle,,
-Jessie,310,,60,40,,,,,30,130,Incomum,Invocador,Controle,,
-Juju,270,30,,,50,,60,,,140,Comum,Detonador,Bosque,,
-Kaze,380,40,,,,,,90,50,180,Lendario,Assassino,Ninja,,
-Kenji,380,40,,,,,,50,90,180,Mitico,Lutador,Ninja,,
-Kit,300,,,,,,10,100,30,140,Incomum,Assassino,Animalia,Curandeiro,Parque
-Larry e Lawrie,270,,50,,40,40,,,,130,Comum,Detonador,Parque,,
-Leon,310,70,,,,,,40,70,180,Lendario,Assassino,Cidade,,
-Lily,360,,,30,,,,30,120,180,Epico,Assassino,Bosque,,
-Lola,320,30,30,,,,,,80,140,Incomum,Artilheiro,Estrelas,,
-Lou,300,,40,,,20,70,,,130,Incomum,Controle,Gelido,,
-Lumi,270,90,,,,,,50,50,190,Raro,Estrelas,Dizimador,,
-Maisie,300,100,,50,,,,20,,170,Raro,Saqueador,Agencia,Demolidor,
-Mandy,310,110,,60,,,,,10,180,Mitico,Sniper,Doceiro,,
-Max,330,,50,,,40,,120,,210,Lendario,Suporte,Velocista,,
-Meg,410,,,100,40,,,,20,160,Incomum,Tanque,Robotico,,
-Meeple,290,,70,,50,50,,,,170,Comum,Controle,Agencia,,
-Melodie,340,,70,,,70,,70,,210,Mitico,Assassino,Estrelas,Velocista,
-Mico,330,60,,,,,20,80,,160,Comum,Assassino,Animalia,,
-Mina,320,70,40,,,,,60,,170,Epico,Lutador,Velocista,,
-Mister P,310,,,30,10,40,,,,80,Comum,Invocador,Agencia,Gelido,
-Mortis,400,70,,,,,,60,50,180,Epico,Assassino,Sinistro,,
-Moe,230,90,,50,,,,,90,230,Mitico,Animalia,Dizimador,Demolidor,
-Nani,230,,120,,40,10,,,,170,Epico,Robotico,Dizimador,,
-Nita,350,,,50,20,,60,,,130,Raro,Animalia,Invocador,,
-Ollie,400,,,30,30,60,,,,120,Comum,Protetor,Cidade,,
-Otis,270,,90,,,90,10,,,190,Raro,Artilheiro,Aquatico,,
-Pam,460,,,,,40,40,,30,110,Incomum,Brutamontes,Curandeiro,,
-Pearl,440,40,,80,70,,,,,190,Raro,Protetor,Robotico,,
-Penny,290,20,,,,,,60,90,170,Epico,Invocador,Saqueador,,
-Pierce,300,70,60,,,,,,60,190,Lendario,Sniper,Aquatico,,
-Piper,260,90,,10,,,,,90,190,Lendario,Sniper,Cidade,,
-Poco,380,,,,90,30,30,,,150,Incomum,Curandeiro,Velho Oeste,,
-Rico,290,70,,30,,,30,,,130,Comum,Artilheiro,Robotico,,
-Rosa,500,,,60,40,,110,,,210,Incomum,Brutamontes,Driade,,
-RT,410,,80,80,,,,,10,170,Epico,Sniper,Robotico,,
-Ruffs,280,50,,,,90,,,20,160,Epico,Animalia,Suporte,,
-Sam,540,70,,70,,,,20,,160,Mitico,Protetor,Brutamontes,Saqueador,
-Sandy,310,,30,,,50,50,,,130,Raro,Suporte,Areia,,
-Shade,320,,70,,,10,,110,,190,Raro,Assassino,Sinistro,,
-Shelly,320,80,,40,,,,50,,170,Comum,Lutador,Velho Oeste,,
-Spike,250,90,,,,,40,,100,230,Lendario,Driade,Dizimador,,
-Sprout,240,,50,50,,,80,,,180,Comum,Detonador,Driade,,
-Squeak,380,,70,,60,,70,,,200,Comum,Sinistro,Controle,,
-Stu,300,,60,10,,,,90,,160,Incomum,Robotico,Velocista,,
-Surge,350,,100,60,60,,,,,220,Lendario,Robotico,Estrelas,,
-Tara,320,20,60,,,50,,,,130,Epico,Areia,Dizimador,,
-Tick,220,60,,20,,,,,30,110,Comum,Brutamontes,Robotico,,
-Trunk,470,,,60,,,120,40,,220,Incomum,Protetor,Bosque,,
-Willow,290,,,,90,60,20,,,170,Mitico,Detonador,Bosque,,
-Ziggs,280,,90,,60,40,,,,190,Raro,Detonador,Sinistro,,
+Nome,Vida,Dano fisico,Dano Especial,Defesa fisica,Defesa especial,Mana,Regeneração,Velocidade,Perfuração,total,Raridade,Sinergia 1,Sinergia 2,Sinergia 3,Sinergia 4,Tipo Dado,Dado
+8-Bit,480,,70,70,40,,,,,180,Raro,Suporte,Robotico,,,SpA,1 2 3 5 7 9
+Alli,290,40,,,,,40,,50,,Comum,Assassino,Bosque,,,Per,1 3 4 6 8 10
+Amber,290,80,80,,,30,,,,190,Lendario,Controle,Dizimador,,,SpA,2 3 5 6 7 9
+Angelo,280,,100,,,,40,,20,160,Epico,Sniper,Nossivo,Bosque,,SpA,1 2 4 7 8 10
+Ash,400,70,,90,50,,,,,210,Epico,Tanque,Parque,,,Def,1 3 5 7 9 10
+Barley,260,,60,,,60,50,,,170,Incomum,Detonador,Robotico,,,Man,2 4 5 6 8 9
+Bea,250,60,40,,,,,,70,170,Incomum,Sniper,Animalia,,,Per,1 2 3 6 8 10
+Belle,270,,50,,,70,,20,,140,Comum,Sniper,Saqueador,,,Man,2 3 4 5 7 9
+Berry,280,,30,,40,80,,,,150,Raro,Curandeiro,Detonador,Doceiro,,Man,1 4 6 7 8 10
+Bibi,520,50,,,,,100,60,,210,Epico,Lutador,Cidade,,,Reg,2 3 5 7 8 9
+Bo,360,60,,,,50,,,70,180,Epico,Artilheiro,Controle,,,Atk,1 2 4 5 6 9
+Bonnie,400,50,,60,,,,,60,170,Raro,Tanque,Sniper,Estrelas,,Def,2 3 6 7 9 10
+Brock,270,90,30,,,,,10,,130,Incomum,Sniper,Agencia,,,Atk,1 3 4 6 7 8
+Bull,530,90,,40,,,30,,,160,Epico,Brutamontes,Velho Oeste,,,Atk,2 4 5 8 9 10
+Buster,480,,50,,60,,,,30,140,Incomum,Brutamontes,Estrelas,,,SpD,1 2 5 6 8 9
+Buzz,490,30,,30,,,60,,,120,Raro,Brutamontes,Aquatico,,,Reg,3 4 6 7 8 10
+Byron,290,,40,,,70,70,,,180,Mitico,Nossivo,Curandeiro,,,Man,1 3 5 6 9 10
+Carl,340,60,,60,,,,60,,180,Comum,Areia,Demolidor,,,Atk,2 4 6 7 8 9
+Charlie,300,,,,50,60,70,,,180,Raro,Sinistro,Controle,,,Reg,1 2 3 4 7 10
+Chester,320,50,50,,,100,,,,200,Comum,Artilheiro,Doceiro,,,Man,2 5 6 7 8 9
+Chucky,420,,,70,70,,,30,,170,Epico,Tanque,Velocista,,,Vel,1 4 5 6 7 9
+Clancy,310,70,,,,,,70,10,150,Incomum,Animalia,Artilheiro,,,Atk,2 3 4 8 9 10
+Collete,290,,50,,,,,50,50,150,Incomum,Parque,Dizimador,,,SpA,1 2 6 7 8 10
+Colt,300,50,,,,,,60,80,190,Incomum,Velho Oeste,Artilheiro,,,Per,3 4 5 6 8 9
+Cordellius,310,,90,,,10,,70,,170,Raro,Bosque,Dizimador,,,SpA,1 2 3 7 9 10
+Corvo,240,,30,,,,,100,80,210,Lendario,Nossivo,Animalia,Agencia,,Vel,2 3 5 6 7 8
+Darryl,440,40,,80,,,,30,,150,Comum,Tanque,Saqueador,,,Def,1 4 5 7 8 9
+Doug,460,,,60,60,,60,,,180,Raro,Protetor,Suporte,Aquatico,,Reg,2 3 4 6 9 10
+Draco,390,,20,70,70,,,,,160,Raro,Tanque,Estrelas,,,Def,1 2 6 7 9 10
+Dynamike,250,110,10,,,20,,,,140,Raro,Detonador,Velho Oeste,,,Atk,3 5 6 7 8 9
+Edgar,300,60,,,,,30,90,,180,Incomum,Assassino,Cidade,,,Vel,1 2 4 6 8 9
+El Primo,560,20,,20,,,40,,,80,Incomum,Lutador,Brutamontes,Cidade,,Reg,2 3 5 7 9 10
+Emz,320,,80,,,70,10,,,160,Raro,Nossivo,Controle,,,SpA,1 4 6 7 8 9
+Eugenio,300,,20,,50,70,,,,140,Incomum,Suporte,Areia,,,Man,2 3 4 5 8 10
+Eve,290,40,40,,,,70,,,150,Raro,Invocador,Driade,,,Reg,1 2 3 6 7 9
+Fang,370,70,,,,,,70,50,190,Raro,Lutador,Estrelas,,,Vel,2 4 6 8 9 10
+Finx,300,,60,40,,80,,,,180,Lendario,Controle,Areia,,,Man,1 3 5 6 7 8
+Frank,600,30,,20,20,,,,,70,Epico,Brutamontes,Sinistro,,,Atk,2 3 4 7 8 9
+Gale,320,,10,,40,50,,,,100,Raro,Suporte,Gelido,,,SpD,1 5 6 7 8 10
+Gigi,350,,,,20,30,,80,,130,Incomum,Lutador,Sinistro,,,Vel,2 3 5 6 9 10
+Glowbert,410,,,,80,,40,30,,150,Raro,Protetor,Suporte,Aquatico,,SpD,1 2 4 6 7 8
+Gray,270,,50,,,70,,,50,170,Epico,Sniper,Sinistro,,,Per,2 4 5 7 9 10
+Griff,300,120,,10,10,,,,,140,Raro,Parque,Dizimador,,,Atk,1 3 4 5 8 9
+Grom,330,40,,60,60,,,,,160,Epico,Detonador,Demolidor,,,Def,2 3 6 7 8 10
+Gus,290,,,,70,70,30,,,170,Raro,Sniper,Suporte,,,SpD,1 2 5 6 7 9
+Hank,500,,,100,20,,,,40,160,Raro,Tanque,Aquatico,,,Def,3 4 5 7 8 10
+Jacky,470,50,,60,30,,,,,,Incomum,Tanque,Cidade,,,Def,1 2 3 4 8 9
+Janet,320,,70,,,50,,,50,170,Mitico,Estrelas,Controle,,,SpA,2 4 6 7 9 10
+Jessie,310,,60,40,,,,,30,130,Incomum,Invocador,Controle,,,Man,1 3 5 6 8 9
+Juju,270,30,,,50,,60,,,140,Comum,Detonador,Bosque,,,Reg,2 3 4 5 7 10
+Kaze,380,40,,,,,,90,50,180,Lendario,Assassino,Ninja,,,Vel,1 2 4 6 8 10
+Kenji,380,40,,,,,,50,90,180,Mitico,Lutador,Ninja,,,Per,2 3 5 7 8 9
+Kit,300,,,,,,10,100,30,140,Incomum,Assassino,Animalia,Curandeiro,Parque,Vel,1 4 5 6 7 10
+Larry e Lawrie,270,,50,,40,40,,,,130,Comum,Detonador,Parque,,,SpA,2 3 6 8 9 10
+Leon,310,70,,,,,,40,70,180,Lendario,Assassino,Cidade,,,Atk,1 2 3 7 8 9
+Lily,360,,,30,,,,30,120,180,Epico,Assassino,Bosque,,,Per,2 4 5 6 7 8
+Lola,320,30,30,,,,,,80,140,Incomum,Artilheiro,Estrelas,,,Per,1 3 6 7 9 10
+Lou,300,,40,,,20,70,,,130,Incomum,Controle,Gelido,,,Man,2 3 4 8 9 10
+Lumi,270,90,,,,,,50,50,190,Raro,Estrelas,Dizimador,,,Atk,1 2 5 7 8 9
+Maisie,300,100,,50,,,,20,,170,Raro,Saqueador,Agencia,Demolidor,,Atk,3 4 6 7 8 10
+Mandy,310,110,,60,,,,,10,180,Mitico,Sniper,Doceiro,,,Atk,1 2 4 5 6 8
+Max,330,,50,,,40,,120,,210,Lendario,Suporte,Velocista,,,Vel,2 3 5 7 9 10
+Meg,410,,,100,40,,,,20,160,Incomum,Tanque,Robotico,,,Def,1 4 6 7 8 9
+Meeple,290,,70,,50,50,,,,170,Comum,Controle,Agencia,,,SpD,2 3 4 6 7 10
+Melodie,340,,70,,,70,,70,,210,Mitico,Assassino,Estrelas,Velocista,,Vel,1 2 3 5 8 9
+Mico,330,60,,,,,20,80,,160,Comum,Assassino,Animalia,,,Atk,2 4 6 8 9 10
+Mina,320,70,40,,,,,60,,170,Epico,Lutador,Velocista,,,Vel,1 3 5 7 8 9
+Mister P,310,,,30,10,40,,,,80,Comum,Invocador,Agencia,Gelido,,Man,2 3 4 5 6 10
+Mortis,400,70,,,,,,60,50,180,Epico,Assassino,Sinistro,,,Atk,1 2 6 7 8 9
+Moe,230,90,,50,,,,,90,230,Mitico,Animalia,Dizimador,Demolidor,,Per,3 4 5 7 9 10
+Nani,230,,120,,40,10,,,,170,Epico,Robotico,Dizimador,,,SpA,1 2 4 6 7 8
+Nita,350,,,50,20,,60,,,130,Raro,Animalia,Invocador,,,Def,2 3 5 6 8 10
+Ollie,400,,,30,30,60,,,,120,Comum,Protetor,Cidade,,,Man,1 4 6 7 9 10
+Otis,270,,90,,,90,10,,,190,Raro,Artilheiro,Aquatico,,,SpA,2 3 4 5 8 9
+Pam,460,,,,,40,40,,30,110,Incomum,Brutamontes,Curandeiro,,,Reg,1 2 3 6 7 8
+Pearl,440,40,,80,70,,,,,190,Raro,Protetor,Robotico,,,Def,2 4 6 7 9 10
+Penny,290,20,,,,,,60,90,170,Epico,Invocador,Saqueador,,,Per,1 3 5 8 9 10
+Pierce,300,70,60,,,,,,60,190,Lendario,Sniper,Aquatico,,,Atk,2 3 4 6 7 8
+Piper,260,90,,10,,,,,90,190,Lendario,Sniper,Cidade,,,Per,1 2 5 7 8 10
+Poco,380,,,,90,30,30,,,150,Incomum,Curandeiro,Velho Oeste,,,SpD,3 4 6 7 8 9
+Rico,290,70,,30,,,30,,,130,Comum,Artilheiro,Robotico,,,Atk,1 2 4 5 7 10
+Rosa,500,,,60,40,,110,,,210,Incomum,Brutamontes,Driade,,,Reg,2 3 5 6 8 9
+RT,410,,80,80,,,,,10,170,Epico,Sniper,Robotico,,,Def,1 4 6 7 8 10
+Ruffs,280,50,,,,90,,,20,160,Epico,Animalia,Suporte,,,Man,2 3 4 7 9 10
+Sam,540,70,,70,,,,20,,160,Mitico,Protetor,Brutamontes,Saqueador,,Vel,1 2 3 5 6 9
+Sandy,310,,30,,,50,50,,,130,Raro,Suporte,Areia,,,Man,2 4 5 7 8 9
+Shade,320,,70,,,10,,110,,190,Raro,Assassino,Sinistro,,,SpA,1 3 6 7 8 10
+Shelly,320,80,,40,,,,50,,170,Comum,Lutador,Velho Oeste,,,Atk,2 3 4 5 9 10
+Spike,250,90,,,,,40,,100,230,Lendario,Driade,Dizimador,,,Per,1 2 5 6 7 8
+Sprout,240,,50,50,,,80,,,180,Comum,Detonador,Driade,,,Man,3 4 6 8 9 10
+Squeak,380,,70,,60,,70,,,200,Comum,Sinistro,Controle,,,SpD,1 2 4 6 7 9
+Stu,300,,60,10,,,,90,,160,Incomum,Robotico,Velocista,,,Vel,2 3 5 7 8 10
+Surge,350,,100,60,60,,,,,220,Lendario,Robotico,Estrelas,,,SpA,1 4 6 7 9 10
+Tara,320,20,60,,,50,,,,130,Epico,Areia,Dizimador,,,SpA,2 3 4 5 8 9
+Tick,220,60,,20,,,,,30,110,Comum,Brutamontes,Robotico,,,Atk,1 2 3 6 8 10
+Trunk,470,,,60,,,120,40,,220,Incomum,Protetor,Bosque,,,Reg,2 4 6 7 8 9
+Willow,290,,,,90,60,20,,,170,Mitico,Detonador,Bosque,,,SpD,1 3 5 6 7 10
+Ziggs,280,,90,,60,40,,,,190,Raro,Detonador,Sinistro,,,SpA,2 3 4 8 9 10
