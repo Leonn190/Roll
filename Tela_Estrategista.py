@@ -91,6 +91,10 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
         if hasattr(player, "draw_ficha"):
             player.draw_ficha(tela, agora, pos=(18, 18))
 
+        # dado arrastado deve ficar na frente da ficha do player
+        if hasattr(grid, "draw_dragging_dado_overlay"):
+            grid.draw_dragging_dado_overlay(tela, mouse_pos)
+
         pygame.display.flip()
 
     return
