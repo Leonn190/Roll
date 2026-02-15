@@ -345,6 +345,15 @@ class Grid:
                     if self.loja.btn_reroll.collidepoint(mouse_pos):
                         self.loja.handle_click(mouse_pos)
                         continue
+
+                    # Compra direta da loja para o banco
+                    if any(s is None for s in self.banco.slots):
+                        bought = self.loja.pick_at_pos(mouse_pos)
+                        if bought is not None:
+                            self.banco.add_to_first_free(bought)
+                            self.campo_dirty = True
+                            continue
+
                     picked = self.banco.pick_at_pos(mouse_pos)
                     if picked:
                         self.dragging = picked
