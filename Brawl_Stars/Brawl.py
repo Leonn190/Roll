@@ -30,6 +30,20 @@ UI_BRANCO = (255, 255, 255)
 # --- AJUSTES (como você pediu agora) ---
 BORDA_PRETA_ESP = 3          # borda fina PRETA (uma só)
 BARRA_NOME_ALPHA = 180       # faixa preta do nome MAIS OPACA
+NOME_SCALE = 0.74
+
+
+def _blit_texto_com_contorno(dest: pygame.Surface, font: pygame.font.Font, text: str, color, outline_color, topright, esp: int = 1):
+    base = font.render(text, True, color)
+    x, y = topright
+    if esp > 0:
+        for ox in range(-esp, esp + 1):
+            for oy in range(-esp, esp + 1):
+                if ox == 0 and oy == 0:
+                    continue
+                sombra = font.render(text, True, outline_color)
+                dest.blit(sombra, sombra.get_rect(topright=(x + ox, y + oy)))
+    dest.blit(base, base.get_rect(topright=(x, y)))
 
 # ============================================================
 # CSV -> CARTUCHOS (com stats)
@@ -257,17 +271,15 @@ def gerar_imagem_cartucho(
     surf.blit(barra_s, barra.topleft)
 
     # nome menor
-    tn = _render_text_scaled(fonte_nome, nome, UI_BRANCO, scale=0.82)
+    tn = _render_text_scaled(fonte_nome, nome, UI_BRANCO, scale=NOME_SCALE)
     surf.blit(tn, tn.get_rect(center=barra.center))
 
     # 4) características (canto direito)
     x_right = w - (BORDA_PRETA_ESP + 6)
     y = BORDA_PRETA_ESP + 6
     for t in caracs:
+        _blit_texto_com_contorno(surf, fonte_carac, t, UI_BRANCO, UI_PRETO, (x_right, y), esp=2)
         texto = fonte_carac.render(t, True, UI_BRANCO)
-        sombra = fonte_carac.render(t, True, (0, 0, 0))
-        surf.blit(sombra, sombra.get_rect(topright=(x_right + 1, y + 1)))
-        surf.blit(texto, texto.get_rect(topright=(x_right, y)))
         y += texto.get_height() + 2
 
     # 5) BORDA PRETA
