@@ -4,7 +4,8 @@ import math
 import colorsys
 import os
 
-from Brawl_Stars.Brawl import gerar_imagem_cartucho_grid
+from Painel_Personagem import draw_painel_personagem
+
 
 # ============================================================
 # CONFIG
@@ -505,20 +506,6 @@ class Grid:
 
 
 
-    def _dice_type_label(self, tipo_raw: str) -> str:
-        t = str(tipo_raw or "").strip().lower()
-        mapa = {
-            "spd": "Defesa Especial",
-            "spa": "Ataque Especial",
-            "atk": "Dano Físico",
-            "def": "Defesa Física",
-            "per": "Perfuração",
-            "reg": "Regeneração",
-            "vel": "Velocidade",
-            "mana": "Mana",
-        }
-        return mapa.get(t, "-")
-
     def _all_visible_cartuchos(self):
         cards = []
 
@@ -549,52 +536,23 @@ class Grid:
         if not (self.banco and self.loja):
             return
 
-        panel_w, panel_h = 300, 184
+        panel_w, panel_h = 300, 220
         x = self.loja.rect.x - panel_w - 14
         y = self.banco.rect.y - panel_h - 8
         x = max(10, x)
         y = max(10, y)
         panel = pygame.Rect(x, y, panel_w, panel_h)
 
-        pygame.draw.rect(surf, (20, 20, 26), panel, border_radius=12)
-        pygame.draw.rect(surf, (90, 90, 110), panel, 2, border_radius=12)
-
-        portrait_rect = pygame.Rect(panel.x + 10, panel.y + 10, 92, 92)
-        img = gerar_imagem_cartucho_grid(cartucho.dados, (portrait_rect.w, portrait_rect.h))
-        surf.blit(img, portrait_rect.topleft)
-
-        nome = self.fonte_hover_titulo.render(cartucho.nome, True, (245, 245, 250))
-        surf.blit(nome, (portrait_rect.right + 10, panel.y + 10))
-
-        syns = cartucho.sinergias[:3]
-        syn_text = " / ".join(syns) if syns else "Sem sinergia"
-        syn = self.fonte_hover_txt.render(syn_text, True, (210, 210, 225))
-        surf.blit(syn, (portrait_rect.right + 10, panel.y + 38))
-
-        st = cartucho.stats
-        atributos = [
-            f"HP {st.get('vida') or 0}",
-            f"Atk {st.get('dano_fisico') or 0}",
-            f"SpA {st.get('dano_especial') or 0}",
-            f"Def {st.get('defesa_fisica') or 0}",
-            f"SpD {st.get('defesa_especial') or 0}",
-            f"Mana {st.get('mana') or 0}",
-        ]
-        for i, txt in enumerate(atributos):
-            tx = panel.x + 10 + (i % 2) * 145
-            ty = panel.y + 110 + (i // 2) * 20
-            t = self.fonte_hover_micro.render(txt, True, (232, 232, 240))
-            surf.blit(t, (tx, ty))
-
-        tipo = getattr(cartucho, "tipo_dado", "")
-        dado = getattr(cartucho, "dado", [])
-        tipo_label = self._dice_type_label(tipo)
-        dado_txt = " ".join(str(v) for v in dado) if dado else "-"
-
-        linha1 = self.fonte_hover_micro.render(f"Tipo do dado: {tipo.upper() or '-'} ({tipo_label})", True, (255, 236, 170))
-        linha2 = self.fonte_hover_micro.render(f"Dado: {dado_txt}", True, (255, 236, 170))
-        surf.blit(linha1, (panel.x + 10, panel.bottom - 38))
-        surf.blit(linha2, (panel.x + 10, panel.bottom - 20))
+        draw_painel_personagem(
+            surf,
+            panel,
+            cartucho,
+            {
+                "titulo": self.fonte_hover_titulo,
+                "txt": self.fonte_hover_txt,
+                "micro": self.fonte_hover_micro,
+            },
+        )
 
     # ---------------- main ----------------
     def update(self, events, agora, mouse_pos):
