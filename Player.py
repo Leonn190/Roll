@@ -1,5 +1,7 @@
 import pygame
 import os
+import math
+from Brawl_Stars.Brawl import gerar_imagem_cartucho_grid
 
 ATRIBUTOS = [
     "dano_fisico",
@@ -420,6 +422,7 @@ class PlayerEstrategista:
         # dados alocados manualmente via arrasto na grid
         self.dados_selecionados = {k: [] for k in ATRIBUTOS}
         self._attr_rects = {}
+        self._drag_preview_dado = None
 
         # fontes
         self._font_nome = None
@@ -589,9 +592,10 @@ class PlayerEstrategista:
                 return False
 
             faces = list((dado_info or {}).get("faces", []) or [])
+            cartucho = (dado_info or {}).get("cartucho")
             self.dados_selecionados[attr].append({
                 "faces": faces[:6],
-                "cartucho": getattr((dado_info or {}).get("cartucho"), "nome", ""),
+                "cartucho": cartucho,
             })
             return True
 
@@ -611,6 +615,9 @@ class PlayerEstrategista:
                 a["on"] = False
             e = _ease_out_cubic(_clamp(t, 0.0, 1.0))
             self.display_val[attr] = _lerp(a["from"], a["to"], e)
+
+    def set_dado_drag_preview(self, dado_info: dict | None):
+        self._drag_preview_dado = dado_info
 
     # ----------------------------
     # desenho
@@ -678,12 +685,26 @@ class PlayerEstrategista:
 
             base_cor = DICE_TYPES.get(attr, (200, 200, 200))
             hovered = cell.collidepoint(mouse_pos)
+            drag_attr = str((self._drag_preview_dado or {}).get("attr", "")).strip()
+            is_drag_target = bool(self._drag_preview_dado) and (drag_attr == attr)
+            pulse = (pygame.time.get_ticks() % 620) / 620.0
+            pulse = 0.45 + 0.55 * (0.5 - 0.5 * math.cos(pulse * math.tau))
 
             pygame.draw.rect(tela, self.FUNDO_CARD, cell, border_radius=12)
             if hovered:
                 pygame.draw.rect(tela, _lighten(self.FUNDO_CARD, 0.08), cell, border_radius=12)
 
+            if is_drag_target:
+                glow = cell.inflate(10, 10)
+                alpha = int(80 + 120 * pulse)
+                gsurf = pygame.Surface((glow.w, glow.h), pygame.SRCALPHA)
+                pygame.draw.rect(gsurf, (*base_cor, alpha), gsurf.get_rect(), border_radius=16)
+                tela.blit(gsurf, glow.topleft)
+
             pygame.draw.rect(tela, base_cor, cell, 3, border_radius=12)
+            if is_drag_target:
+                thick = 3 + int(2 * pulse)
+                pygame.draw.rect(tela, (255, 245, 170), cell, thick, border_radius=12)
 
             label = LABELS.get(attr, attr)
             tlabel = self._font_small.render(label, True, (235, 235, 235))
@@ -697,5 +718,13 @@ class PlayerEstrategista:
 
             dados_qtd = len(self.dados_selecionados.get(attr, []))
             if dados_qtd > 0:
-                td = self._font_micro.render(f"Dado: {dados_qtd}", True, (240, 240, 210))
-                tela.blit(td, (bx + 10, by + cell_h - td.get_height() - 6))
+                icon_size = 22
+                max_icons = max(1, (cell_w - 20) // (icon_size + 4))
+                x0 = bx + 10
+                y0 = by + cell_h - icon_size - 8
+                for dado in self.dados_selecionados[attr][:max_icons]:
+                    cartucho = dado.get("cartucho")
+                    dados = getattr(cartucho, "dados", {}) if cartucho is not None else {}
+                    icon = gerar_imagem_cartucho_grid(dados or {}, (icon_size, icon_size))
+                    tela.blit(icon, (x0, y0))
+                    x0 += icon_size + 4
