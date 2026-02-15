@@ -278,11 +278,7 @@ class Grid:
             return None
         tipo = str(getattr(cartucho, "tipo_dado", "") or "").strip().lower()
         attr = self._tipo_dado_para_attr(tipo)
-        if not attr:
-            return None
         faces = list(getattr(cartucho, "dado", []) or [])
-        if not faces:
-            return None
         return {"cartucho": cartucho, "attr": attr, "tipo": tipo, "faces": faces}
 
     # ---------------- placement rules ----------------
@@ -403,8 +399,11 @@ class Grid:
 
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
                 if self.dragging_dado is not None:
-                    if self.player is not None and hasattr(self.player, "drop_dado_em_attr"):
-                        self.player.drop_dado_em_attr(mouse_pos, self.dragging_dado)
+                    if self.player is not None:
+                        if hasattr(self.player, "drop_combatente_em_slot"):
+                            self.player.drop_combatente_em_slot(mouse_pos, self.dragging_dado.get("cartucho"))
+                        if hasattr(self.player, "drop_dado_em_attr"):
+                            self.player.drop_dado_em_attr(mouse_pos, self.dragging_dado)
                     self.dragging_dado = None
                     self._dragging_dado_icon = None
                     if self.player is not None and hasattr(self.player, "set_dado_drag_preview"):
