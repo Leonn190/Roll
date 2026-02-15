@@ -20,9 +20,9 @@ RARITY_ORDER = {
     "comum": 0,
     "incomum": 1,
     "raro": 2,
-    "épico": 3,
-    "mítico": 4,
-    "lendário": 5,
+    "epico": 3,
+    "lendario": 4,
+    "mitico": 5,
 }
 
 def draw_round_rect(surf, color, rect, width=0, radius=12):
@@ -46,6 +46,23 @@ def _draw_text_with_outline(surf, font, text, color, outline_color, topleft, esp
 # =========================
 def _norm_sym(x) -> str:
     return str(x).strip().lower()
+
+
+def _norm_rarity(x) -> str:
+    txt = str(x).strip().lower()
+    return (
+        txt.replace("á", "a")
+        .replace("à", "a")
+        .replace("â", "a")
+        .replace("ã", "a")
+        .replace("é", "e")
+        .replace("ê", "e")
+        .replace("í", "i")
+        .replace("ó", "o")
+        .replace("ô", "o")
+        .replace("õ", "o")
+        .replace("ú", "u")
+    )
 
 def _color_for_synergy(sym: str):
     s = _norm_sym(sym)
@@ -74,7 +91,7 @@ class PainelSinergia:
         meta = {}
         for d in brawlers_defs:
             raridade = str(d.get("raridade", "comum")).strip().lower()
-            ordem = RARITY_ORDER.get(raridade, 0)
+            ordem = RARITY_ORDER.get(_norm_rarity(raridade), 0)
             for s in (d.get("características", []) or []):
                 nome = str(s).strip()
                 if not nome:
@@ -134,9 +151,18 @@ class PainelSinergia:
         for idx, d in enumerate(integrantes):
             row = idx // cols
             col = idx % cols
-            xx = tip.x + pad + col * (icon_size + 6)
+            col_rtl = (cols - 1) - col
+            if row == rows - 1 and len(integrantes) % cols != 0:
+                used_cols_last_row = len(integrantes) % cols
+                col_rtl = (used_cols_last_row - 1) - col
+
+            xx = tip.x + pad + col_rtl * (icon_size + 6)
             yy = y0 + row * (icon_size + 6)
-            icon = gerar_imagem_cartucho_grid(d, (icon_size, icon_size))
+            icon = gerar_imagem_cartucho_grid(d, (icon_size, icon_size)).copy()
+            if not d.get("em_campo", False):
+                fade = pygame.Surface((icon_size, icon_size), pygame.SRCALPHA)
+                fade.fill((0, 0, 0, 120))
+                icon.blit(fade, (0, 0))
             surf.blit(icon, (xx, yy))
             raridade = str(d.get("raridade", "comum")).strip().lower()
             borda = CORES_RARIDADE.get(raridade, (70, 70, 90))
@@ -169,7 +195,8 @@ class PainelSinergia:
         total_counts = {}
         for cartucho in grid_occ.values():
             for s in getattr(cartucho, "sinergias", []):
-                total_counts[s] = total_counts.get(s, 0) + 1
+                key = _norm_sym(s)
+                total_counts[key] = total_counts.get(key, 0) + 1
 
         active_counts = {}
         if player is not None and hasattr(player, "sinergias_ativas") and isinstance(player.sinergias_ativas, dict):
@@ -180,6 +207,8 @@ class PainelSinergia:
             qtd = int(total_counts.get(syn_norm, 0))
             is_active = syn_norm in active_counts
             has_on_grid = qtd > 0
+            if not has_on_grid:
+                continue
             items.append((
                 syn_norm,
                 str(meta.get("nome", syn_norm)).title(),
@@ -225,7 +254,22 @@ class PainelSinergia:
                 for d in self._all_brawlers_defs:
                     sins = [str(s2).strip().lower() for s2 in (d.get("características", []) or [])]
                     if syn_norm in sins:
-                        integrantes.append(d)
+                        integrantes.append(dict(d))
+
+                on_grid_ids = {
+                    str(getattr(cartucho, "id", "")).strip().lower()
+                    for cartucho in grid_occ.values()
+                }
+
+                for d in integrantes:
+                    d["em_campo"] = str(d.get("id", "")).strip().lower() in on_grid_ids
+
+                integrantes.sort(
+                    key=lambda b: (
+                        RARITY_ORDER.get(_norm_rarity(b.get("raridade", "comum")), 0),
+                        str(b.get("nome", "")).lower(),
+                    )
+                )
 
                 self._tooltip = {
                     "titulo": f"{nome} ({len(integrantes)})",
