@@ -227,8 +227,10 @@ class PainelSinergia:
             if shown >= 10:
                 break
 
-            if has_on_grid:
-                color = _color_for_synergy(nome) if is_active else (220, 220, 235)
+            if has_on_grid and n >= SYNERGY_THRESHOLD and is_active:
+                color = _color_for_synergy(nome)
+            elif has_on_grid:
+                color = (220, 220, 235)
             else:
                 color = (110, 110, 125)
 

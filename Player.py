@@ -80,6 +80,8 @@ class PlayerBatalha:
     # ficha fixa
     FICHA_W = 350
     FICHA_H = 500
+    COMBATE_SLOTS_TOTAL = 4
+    COMBATE_SLOTS_LIBERADOS = 2
     PAD = 14
     GAP = 10
 
@@ -396,6 +398,8 @@ class PlayerEstrategista:
     # ficha fixa (compacta, topo esquerdo)
     FICHA_W = 350
     FICHA_H = 500
+    COMBATE_SLOTS_TOTAL = 4
+    COMBATE_SLOTS_LIBERADOS = 2
     PAD = 14
     GAP = 10
 
@@ -447,6 +451,10 @@ class PlayerEstrategista:
         self.percentuais["assertividade"] = 100
         self._percent_rects = {}
         self._percent_icons = {}
+
+        # seleção de personagens para o combate
+        self.combate_slots = [None] * self.COMBATE_SLOTS_TOTAL
+        self._combate_rects = {}
 
         # fontes
         self._font_nome = None
@@ -603,19 +611,38 @@ class PlayerEstrategista:
         vida_total = 0
         soma = {k: 0 for k in ATRIBUTOS}
 
-        for c in cartuchos:
+        em_campo_ids = {id(c) for c in cartuchos}
+        self.combate_slots = [c if (c is not None and id(c) in em_campo_ids) else None for c in self.combate_slots]
+
+        escalados = []
+        vistos = set()
+        for c in self.combate_slots:
+            if c is None:
+                continue
+            if id(c) in vistos:
+                continue
+            vistos.add(id(c))
+            escalados.append(c)
+
+        def acumula_cartucho(c):
+            nonlocal vida_total
             mult = self._star_mult(c)
-
-            vida_total += self._get_stat(c, "vida")
-
+            vida_total += int(round(self._get_stat(c, "vida") * mult))
             soma["dano_fisico"]   += int(round(self._get_stat(c, "dano_fisico") * mult))
             soma["dano_magico"]   += int(round(self._get_stat(c, "dano_especial") * mult))
             soma["defesa_fisica"] += int(round(self._get_stat(c, "defesa_fisica") * mult))
             soma["defesa_magica"] += int(round(self._get_stat(c, "defesa_especial") * mult))
-            soma["regeneracao"]   += self._get_stat(c, "regeneracao")
-            soma["mana"]          += self._get_stat(c, "mana")
-            soma["velocidade"]    += self._get_stat(c, "velocidade")
-            soma["penetracao"]    += self._get_stat(c, "perfuracao")
+            soma["regeneracao"]   += int(round(self._get_stat(c, "regeneracao") * mult))
+            soma["mana"]          += int(round(self._get_stat(c, "mana") * mult))
+            soma["velocidade"]    += int(round(self._get_stat(c, "velocidade") * mult))
+            soma["penetracao"]    += int(round(self._get_stat(c, "perfuracao") * mult))
+
+        for c in cartuchos:
+            acumula_cartucho(c)
+
+        # personagens escalados para combate aplicam seus status em dobro
+        for c in escalados:
+            acumula_cartucho(c)
 
         self.vida_max = int(vida_total)
         self.vida = self.vida_max
@@ -650,6 +677,28 @@ class PlayerEstrategista:
             return True
 
         return False
+
+    def drop_combatente_em_slot(self, mouse_pos, cartucho):
+        if cartucho is None or not self._combate_rects:
+            return False
+
+        alvo = None
+        for idx, rect in self._combate_rects.items():
+            if rect.collidepoint(mouse_pos):
+                alvo = idx
+                break
+
+        if alvo is None:
+            return False
+        if alvo >= self.COMBATE_SLOTS_LIBERADOS:
+            return False
+
+        for i, atual in enumerate(self.combate_slots):
+            if atual is cartucho:
+                self.combate_slots[i] = None
+
+        self.combate_slots[alvo] = cartucho
+        return True
 
     # ----------------------------
     # update
@@ -781,31 +830,34 @@ class PlayerEstrategista:
                     x0 += icon_size + 4
 
         self._percent_rects = {}
-        py = grid_top + rows * cell_h + (rows - 1) * gap + 10
-        icon_size = 26
-        icon_gap = 9
-        px = cx + 2
-        for key, label in PERCENT_LABELS:
+        py = grid_top + rows * cell_h + (rows - 1) * gap + 8
+        cols_p, rows_p = 3, 2
+        icon_size = 24
+        col_w = (w - self.PAD * 2 - gap * (cols_p - 1)) // cols_p
+        for idx, (key, label) in enumerate(PERCENT_LABELS):
+            col = idx % cols_p
+            row = idx // cols_p
+            px = cx + col * (col_w + gap)
+            by = py + row * (icon_size + 10)
+
             val = int(self.percentuais.get(key, 0))
             icon = self._get_percent_icon(key, icon_size)
-            rect = pygame.Rect(px, py, icon_size, icon_size)
+            rect = pygame.Rect(px, by, icon_size, icon_size)
 
             pygame.draw.rect(tela, (32, 32, 40), rect, border_radius=7)
             pygame.draw.rect(tela, (90, 90, 110), rect, 1, border_radius=7)
             if icon is not None:
                 tela.blit(icon, rect.topleft)
-            else:
-                fallback = self._font_tiny.render(str(val), True, (210, 210, 225))
-                tela.blit(fallback, fallback.get_rect(center=rect.center))
+
+            val_txt = self._font_tiny.render(f"{val}%", True, (220, 220, 235))
+            tela.blit(val_txt, (rect.right + 5, rect.y + (icon_size - val_txt.get_height()) // 2))
 
             self._percent_rects[key] = rect
-            px += icon_size + icon_gap
 
         for key, label in PERCENT_LABELS:
             rect = self._percent_rects.get(key)
             if rect and rect.collidepoint(mouse_pos):
-                val = int(self.percentuais.get(key, 0))
-                tip = self._font_tiny.render(f"{label}: {val}%", True, (245, 245, 250))
+                tip = self._font_tiny.render(label, True, (245, 245, 250))
                 tip_rect = tip.get_rect()
                 box = pygame.Rect(mouse_pos[0] + 12, mouse_pos[1] + 10, tip_rect.w + 12, tip_rect.h + 8)
                 if box.right > tela.get_width() - 6:
@@ -816,3 +868,37 @@ class PlayerEstrategista:
                 pygame.draw.rect(tela, (120, 120, 145), box, 1, border_radius=8)
                 tela.blit(tip, (box.x + 6, box.y + 4))
                 break
+
+        # slots de seleção para combate (abaixo da ficha)
+        self._combate_rects = {}
+        title = self._font_small.render("Escalação de Combate", True, (228, 228, 238))
+        slots_top = painel.bottom + 12
+        tela.blit(title, (painel.x + 4, slots_top))
+
+        slot_size = 58
+        slot_gap = 10
+        start_x = painel.x + 6
+        start_y = slots_top + title.get_height() + 8
+
+        for idx in range(self.COMBATE_SLOTS_TOTAL):
+            col = idx % 2
+            row = idx // 2
+            sx = start_x + col * (slot_size + slot_gap)
+            sy = start_y + row * (slot_size + slot_gap)
+            rect = pygame.Rect(sx, sy, slot_size, slot_size)
+            self._combate_rects[idx] = rect
+
+            unlocked = idx < self.COMBATE_SLOTS_LIBERADOS
+            bg = (26, 26, 32) if unlocked else (20, 20, 24)
+            bd = (110, 110, 132) if unlocked else (70, 70, 82)
+            pygame.draw.rect(tela, bg, rect, border_radius=10)
+            pygame.draw.rect(tela, bd, rect, 2, border_radius=10)
+
+            cartucho = self.combate_slots[idx]
+            if cartucho is not None and unlocked:
+                icon = gerar_imagem_cartucho_grid(getattr(cartucho, "dados", {}) or {}, (slot_size - 8, slot_size - 8))
+                tela.blit(icon, (rect.x + 4, rect.y + 4))
+                pygame.draw.rect(tela, (255, 220, 120), rect, 2, border_radius=10)
+            elif not unlocked:
+                lock = self._font_tiny.render("BLOQ", True, (140, 140, 155))
+                tela.blit(lock, lock.get_rect(center=rect.center))

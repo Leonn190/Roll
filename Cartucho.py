@@ -137,10 +137,10 @@ class Cartucho:
 
             stars = self.estrelas_visiveis
             if stars > 0:
-                icon_size = max(10, min(16, r.w // 6))
+                icon_size = max(14, min(22, r.w // 4))
                 total_w = stars * icon_size + (stars - 1) * 2
                 x0 = r.x + (r.w - total_w) // 2
-                y0 = r.bottom - icon_size - 4
+                y0 = r.bottom - icon_size - 2
                 icon = _get_star_icon(icon_size)
                 for i in range(stars):
                     xx = x0 + i * (icon_size + 2)
