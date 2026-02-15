@@ -67,7 +67,7 @@ class Banco:
         self._last_ms = None
 
         # fonte cache
-        self._fonte_carac = pygame.font.Font(os.path.join("Fontes", "FontePadrão.ttf"), 18)
+        self._fonte_carac = pygame.font.Font(os.path.join("Fontes", "FontePadrão.ttf"), 14)
 
         self._recalc_layout()
         self.recompactar()  # garante layout correto mesmo vazio

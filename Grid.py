@@ -106,10 +106,10 @@ class Grid:
         self.player = None
 
         self.fonte_path = os.path.join("Fontes", "FontePadrão.ttf")
-        self.fonte_titulo = pygame.font.Font(self.fonte_path, 34)
-        self.fonte_item   = pygame.font.Font(self.fonte_path, 26)
-        self.fonte_nome   = pygame.font.Font(self.fonte_path, 22)
-        self.fonte_carac  = pygame.font.Font(self.fonte_path, 18)
+        self.fonte_titulo = pygame.font.Font(self.fonte_path, 28)
+        self.fonte_item   = pygame.font.Font(self.fonte_path, 20)
+        self.fonte_nome   = pygame.font.Font(self.fonte_path, 20)
+        self.fonte_carac  = pygame.font.Font(self.fonte_path, 15)
 
         self._valid_cells = set()
         self._active_cache = None
@@ -426,15 +426,29 @@ class Grid:
         # ordem estável para sobreposição previsível
         items = sorted(active_pos.items(), key=lambda kv: kv[0])
 
-        hover_blink = _blink_strength(agora_ms, period_ms=360)
+        hover_pulse = 0.78 + 0.28 * _blink_strength(agora_ms, period_ms=640)
 
+        non_hover = []
+        hover_item = None
         for sym, pos_set in items:
+            if hovered_synergy is not None and _norm_sym(sym) == _norm_sym(hovered_synergy):
+                hover_item = (sym, pos_set)
+            else:
+                non_hover.append((sym, pos_set))
+
+        draw_order = non_hover + ([hover_item] if hover_item else [])
+
+        for sym, pos_set in draw_order:
             if not pos_set:
                 continue
             color = _color_for_synergy(sym, self._syn_color_cache)
             is_hover = hovered_synergy is not None and _norm_sym(sym) == _norm_sym(hovered_synergy)
             draw_thick = thick + 4 if is_hover else thick
-            draw_color = (255, 255, 255) if is_hover and hover_blink > 0.45 else color
+            draw_color = (
+                min(255, int(color[0] * hover_pulse)),
+                min(255, int(color[1] * hover_pulse)),
+                min(255, int(color[2] * hover_pulse)),
+            ) if is_hover else color
 
             for comp in self._components_4(set(pos_set)):
                 for (x1, y1, x2, y2) in self._perimeter_edges(comp):

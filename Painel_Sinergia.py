@@ -18,6 +18,19 @@ SYNERGY_THRESHOLD = 2  # mantido (mas agora o painel pode usar as conectadas do 
 def draw_round_rect(surf, color, rect, width=0, radius=12):
     pygame.draw.rect(surf, color, rect, width, border_radius=radius)
 
+
+def _draw_text_with_outline(surf, font, text, color, outline_color, topleft, esp=1):
+    base = font.render(text, True, color)
+    x, y = topleft
+    for ox in range(-esp, esp + 1):
+        for oy in range(-esp, esp + 1):
+            if ox == 0 and oy == 0:
+                continue
+            sombra = font.render(text, True, outline_color)
+            surf.blit(sombra, (x + ox, y + oy))
+    surf.blit(base, topleft)
+
+
 # =========================
 # MESMA COR DA GRID
 # =========================
@@ -92,14 +105,14 @@ class PainelSinergia:
             is_active = syn_norm in active_counts
             color = _color_for_synergy(syn) if is_active else (255, 255, 255)
 
-            active_n = active_counts.get(syn_norm, 0)
-            tag = f" ({active_n})" if is_active else ""
-            s = font_item.render(f"{str(syn).title()}  [{n}]{tag}", True, color)
-            item_rect = s.get_rect(topleft=(x, y))
-            surf.blit(s, item_rect.topleft)
+            shown_n = active_counts.get(syn_norm, n) if is_active else n
+            texto = f"{str(syn).title()}  [{shown_n}]"
+            ts = font_item.render(texto, True, color)
+            item_rect = ts.get_rect(topleft=(x, y))
+            _draw_text_with_outline(surf, font_item, texto, color, (0, 0, 0), item_rect.topleft, esp=1)
             self._item_rects[syn_norm] = item_rect
             if item_rect.collidepoint(mouse_pos):
                 self.hovered_synergy = syn_norm
 
-            y += 28
+            y += 24
             shown += 1
