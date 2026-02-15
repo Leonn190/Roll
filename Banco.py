@@ -66,7 +66,7 @@ class Banco:
         self._last_ms = None
 
         # fonte cache
-        self._fonte_carac = pygame.font.SysFont(None, 18, bold=True)
+        self._fonte_carac = pygame.font.Font(None, 18)
 
         self._recalc_layout()
         self.recompactar()  # garante layout correto mesmo vazio
@@ -214,7 +214,8 @@ class Banco:
         draw_round_rect(surf, BANK_BG, self.rect, 0, 14)
         draw_round_rect(surf, BANK_BORDER, self.rect, 3, 14)
 
-        title = font_title.render("BANCO", True, TEXT)
+        ocupadas = len(self._cartas_atuais())
+        title = font_title.render(f"BANCO {ocupadas}/{self.slots_n}", True, TEXT)
         surf.blit(title, (self.rect.x + 14, self.rect.y - 30))
 
         mouse_pos = pygame.mouse.get_pos()

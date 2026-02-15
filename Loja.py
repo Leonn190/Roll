@@ -67,6 +67,11 @@ def _cost_for_cartucho(cartucho) -> int:
     return int(RARITY_COST.get(rar, 2))
 
 
+def _sell_value_for_cartucho(cartucho) -> int:
+    # venda devolve custo de compra - 1 (mínimo 0)
+    return max(0, _cost_for_cartucho(cartucho) - 1)
+
+
 class Loja:
     def __init__(self, tela, deck_defs: list[dict]):
         self.tela = tela
@@ -171,6 +176,9 @@ class Loja:
                 return c
         return None
 
+    def sell_value_for_cartucho(self, cartucho) -> int:
+        return _sell_value_for_cartucho(cartucho)
+
     def draw(self, surf, fonte_titulo, fonte_item, fonte_nome=None, fonte_carac=None):
         self._recalc_layout()
 
@@ -185,7 +193,7 @@ class Loja:
             draw_round_rect(surf, (40, 40, 50), sr, 2, 12)
 
         fonte_nome = fonte_nome or fonte_item
-        fonte_carac = fonte_carac or pygame.font.SysFont(None, 18, bold=True)
+        fonte_carac = fonte_carac or fonte_item
 
         for i, c in enumerate(self.cartuchos):
             if c is None:
@@ -201,4 +209,3 @@ class Loja:
 
         label = fonte_item.render("REROLL", True, TEXT)
         surf.blit(label, label.get_rect(center=self.btn_reroll.center))
-

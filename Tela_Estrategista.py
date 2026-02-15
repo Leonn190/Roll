@@ -1,5 +1,6 @@
 # Tela_Estrategista.py
 import pygame
+import random
 
 from Grid import Grid
 from Banco import Banco, BANK_CARD_W, BANK_CARD_H
@@ -44,8 +45,8 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
         except Exception:
             pass
 
-    # banco inicial
-    start_defs = [dict(d) for d in DECK_DEFS[:12]]
+    # banco inicial: 8 cartas aleatórias
+    start_defs = [dict(d) for d in random.sample(DECK_DEFS, k=min(8, len(DECK_DEFS)))]
     for d in start_defs:
         banco.add_to_first_free(Cartucho(d, BANK_CARD_W, BANK_CARD_H))
 
