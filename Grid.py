@@ -287,17 +287,18 @@ class Grid:
 
     # ---------------- placement rules ----------------
     def can_place(self, cartucho, c, r):
-        if not (0 <= c < self.cols and 0 <= r < self.rows) or (c, r) in self.occ:
+        if not (0 <= c < self.cols and 0 <= r < self.rows):
             return False
 
-        # Impede duplicar o mesmo personagem no campo.
-        new_id = str(getattr(cartucho, "id", "") or "").strip().lower()
-        new_nome = str(getattr(cartucho, "nome", "") or "").strip().lower()
-        for existente in self.occ.values():
-            ex_id = str(getattr(existente, "id", "") or "").strip().lower()
-            ex_nome = str(getattr(existente, "nome", "") or "").strip().lower()
-            if (new_id and ex_id == new_id) or (new_nome and ex_nome == new_nome):
-                return False
+        occupying = self.occ.get((c, r))
+        if occupying is not None:
+            # Sobreposição só é válida no mesmo brawler (vira estrela).
+            new_id = str(getattr(cartucho, "id", "") or "").strip().lower()
+            new_nome = str(getattr(cartucho, "nome", "") or "").strip().lower()
+            occ_id = str(getattr(occupying, "id", "") or "").strip().lower()
+            occ_nome = str(getattr(occupying, "nome", "") or "").strip().lower()
+            same = (new_id and occ_id == new_id) or (new_nome and occ_nome == new_nome)
+            return bool(same)
 
         if not self.occ:
             return True
@@ -334,6 +335,12 @@ class Grid:
         return True
 
     def place(self, cartucho, c, r):
+        existing = self.occ.get((c, r))
+        if existing is not None:
+            existing.estrelas = int(getattr(existing, "estrelas", 0)) + 1
+            self.campo_dirty = True
+            return
+
         self.occ[(c, r)] = cartucho
         cartucho.set_location_grid(c, r, self.cell_rect(c, r))
         self.campo_dirty = True
