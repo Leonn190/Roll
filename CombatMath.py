@@ -50,7 +50,14 @@ def _effective_defenses(attacker, defender):
 
 def _compute_hit(attacker, defender, kind):
     if not _hit(attacker):
-        return {"kind": kind, "hit": False, "damage": 0, "heal": 0}
+        return {
+            "kind": kind,
+            "hit": False,
+            "damage": 0,
+            "heal": 0,
+            "raw_damage": 0,
+            "defense_block": 0,
+        }
 
     df, dm = _effective_defenses(attacker, defender)
     if kind == "fisico":
@@ -60,10 +67,19 @@ def _compute_hit(attacker, defender, kind):
         raw = max(0.0, _total(attacker, "dano_magico"))
         mitigado = raw * _armor_multiplier_lol(dm)
 
+    raw_damage = int(round(raw))
     damage = _damage_after_mods(mitigado, attacker, defender)
+    defense_block = max(0, raw_damage - damage)
     vamp = max(0.0, _pct(attacker, "vampirismo", 0) / 100.0)
     heal = int(round(damage * vamp))
-    return {"kind": kind, "hit": True, "damage": damage, "heal": heal}
+    return {
+        "kind": kind,
+        "hit": True,
+        "damage": damage,
+        "heal": heal,
+        "raw_damage": raw_damage,
+        "defense_block": defense_block,
+    }
 
 
 def _hit_slots(attacker, defender):
