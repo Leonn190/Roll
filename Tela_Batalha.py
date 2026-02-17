@@ -1,4 +1,5 @@
 import pygame
+import random
 
 from Tabuleiro import Tabuleiro
 from Player import PlayerBatalha, PlayerEstrategista, ATRIBUTOS
@@ -24,22 +25,21 @@ def _draw_status(tela, texto, timer_s):
 def TelaBatalha(tela, relogio, estados, config, info=None):
     tabuleiro = Tabuleiro(tela)
 
-    p1 = PlayerBatalha("Aliado", lado="aliado", nivel=3)
-    p2 = PlayerBatalha("Inimigo", lado="inimigo", nivel=3)
-
-    p1_compartilhado = PlayerEstrategista("ALIADO", lado="aliado", ouro_inicial=0)
+    p1_compartilhado = PlayerEstrategista("PLAYER", lado="aliado", ouro_inicial=0)
     dados_player = (info or {}).get("player_aliado") if isinstance(info, dict) else None
     if isinstance(dados_player, dict):
         p1_compartilhado.carregar_estado_compartilhado(dados_player)
 
-    p2.vida_max, p2.vida = 1400, 1400
-    p2.set_base("defesa_magica", 300)
-    p2.set_base("defesa_fisica", 220)
-    p2.set_base("dano_magico", 160)
-    p2.set_base("dano_fisico", 180)
-    p2.set_base("velocidade", 90)
-    p2.set_base("regeneracao", 15)
-    p2.set_percentuais({"assertividade": 95, "chance_crit": 20, "dano_crit": 50, "red_dano": 8})
+    nome_player = str(p1_compartilhado.nome or "PLAYER")
+    nivel_player = 2
+    if isinstance(dados_player, dict):
+        nivel_player = max(1, int(dados_player.get("nivel", nivel_player) or nivel_player))
+    p1 = PlayerBatalha(nome_player, lado="aliado", nivel=nivel_player)
+    p2 = PlayerBatalha("Inimigo", lado="inimigo", nivel=p1.nivel)
+
+    vida_ref = max(200, int(p1_compartilhado.vida_max or 0))
+    p2.vida_max = int(vida_ref * random.uniform(0.85, 1.15))
+    p2.vida = p2.vida_max
 
     ativos_aliados = [a for a in ATRIBUTOS if p1_compartilhado.dados_selecionados.get(a)]
     for attr in ativos_aliados[:p1.max_ativos()]:
@@ -49,14 +49,21 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
         p1.toggle_attr_ativo("dano_fisico")
         p1.toggle_attr_ativo("dano_magico")
 
-    p2.toggle_attr_ativo("defesa_magica")
-    p2.toggle_attr_ativo("dano_magico")
-    p2.toggle_attr_ativo("velocidade")
-
     for attr in ATRIBUTOS:
-        p1.set_base(attr, int(p1_compartilhado.totais.get(attr, 0)))
+        base_player = int(p1_compartilhado.totais.get(attr, 0))
+        p1.set_base(attr, base_player)
+        if base_player <= 0:
+            p2.set_base(attr, random.randint(0, 40))
+        else:
+            p2.set_base(attr, int(base_player * random.uniform(0.8, 1.2)))
 
+    p1.ouro = int(p1_compartilhado.ouro)
     p1.set_percentuais(p1_compartilhado.percentuais)
+    p2.set_percentuais(p1_compartilhado.percentuais)
+
+    ativos_inimigos = random.sample(ATRIBUTOS, k=min(p2.max_ativos(), len(ATRIBUTOS)))
+    for attr in ativos_inimigos:
+        p2.toggle_attr_ativo(attr)
 
     last_somas = {
         "aliado": {a: 0 for a in ATRIBUTOS},
@@ -129,6 +136,7 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
         p2.update(agora)
 
         if not pausa_ativa:
+            p1.handle_events(events, mouse_pos, lado_ficha="esquerda")
             p2.handle_events(events, mouse_pos, lado_ficha="direita")
             tabuleiro.set_lado_ativo("aliado")
             tabuleiro.update(events, agora)
@@ -157,8 +165,8 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                     iniciar_round(agora)
 
         if not pausa_ativa:
-            p1.draw_ficha(tela, agora, lado="esquerda", pos=(18, tela.get_height() - p1.FICHA_H - 18), mostrar_botoes=False)
-            p2.draw_ficha(tela, agora, lado="direita", pos=(tela.get_width() - p2.FICHA_W - 18, 18), mostrar_botoes=False)
+            p1.draw_ficha(tela, agora, lado="esquerda", pos=(18, tela.get_height() - p1.FICHA_H - 18), mostrar_botoes=True)
+            p2.draw_ficha(tela, agora, lado="direita", pos=(tela.get_width() - p2.FICHA_W - 18, 18), mostrar_botoes=True)
 
             timer_s = max(0, (fase_duracao - (agora - fase_inicio) + 999) // 1000)
             if vencedor_nome:

@@ -140,6 +140,7 @@ class PlayerBatalha:
 
         # quais estão em uso (ativos)
         self.ativos = set()  # conjunto de attrs ativos
+        self._ativos_ordem = []
 
         # cache de retângulos clicáveis por frame
         self._attr_rects = {}
@@ -149,6 +150,8 @@ class PlayerBatalha:
         self._font_small = None
         self._font_big = None
         self._font_hp = None
+        self._font_tiny = None
+        self._percent_icons = {}
 
     # ----------------------------
     # cálculo
@@ -219,13 +222,17 @@ class PlayerBatalha:
 
         if attr in self.ativos:
             self.ativos.remove(attr)
+            if attr in self._ativos_ordem:
+                self._ativos_ordem.remove(attr)
             return
 
-        # se tá cheio, não liga mais (você pode preferir "trocar o mais antigo")
+        # quando lotado, troca pelo mais antigo
         if len(self.ativos) >= self.max_ativos():
-            return
+            antigo = self._ativos_ordem.pop(0)
+            self.ativos.remove(antigo)
 
         self.ativos.add(attr)
+        self._ativos_ordem.append(attr)
 
     def get_dados_ativos_para_lancar(self):
         """
@@ -266,6 +273,27 @@ class PlayerBatalha:
         self._font_hp = pygame.font.Font(self.FONTE_PATH, 26)
         self._font_small = pygame.font.Font(self.FONTE_PATH, 18)
         self._font_big = pygame.font.Font(self.FONTE_PATH, 40)
+        self._font_tiny = pygame.font.Font(self.FONTE_PATH, 14)
+
+    def _get_percent_icon(self, key: str, size: int):
+        cache_key = (key, int(size))
+        if cache_key in self._percent_icons:
+            return self._percent_icons[cache_key]
+
+        fname = PERCENT_ICONS.get(key)
+        if not fname:
+            self._percent_icons[cache_key] = None
+            return None
+
+        path = os.path.join("Recursos", "Visual", "Icones", fname)
+        try:
+            icon = pygame.image.load(path).convert_alpha()
+            icon = pygame.transform.smoothscale(icon, (size, size))
+        except Exception:
+            icon = None
+
+        self._percent_icons[cache_key] = icon
+        return icon
 
     # ----------------------------
     # eventos: clique nos botões de atributo
@@ -329,7 +357,8 @@ class PlayerBatalha:
         grid_top = cy
 
         cell_w = (w - self.PAD * 2 - gap * (cols - 1)) // cols
-        cell_h = (h - (grid_top - y) - self.PAD - gap * (rows - 1)) // rows
+        footer_h = 90
+        cell_h = (h - (grid_top - y) - self.PAD - footer_h - gap * (rows - 1)) // rows
 
         mouse_pos = pygame.mouse.get_pos()
 
@@ -401,6 +430,27 @@ class PlayerBatalha:
             tnum = self._font_big.render(vtxt, True, num_color)
             center_y = by + (cell_h // 2) + 8
             tela.blit(tnum, tnum.get_rect(center=(bx + cell_w // 2, center_y)))
+
+        py = grid_top + rows * cell_h + (rows - 1) * gap + 8
+        cols_p = 3
+        icon_size = 24
+        col_w = (w - self.PAD * 2 - gap * (cols_p - 1)) // cols_p
+        for idx, (key, _label) in enumerate(PERCENT_LABELS):
+            col = idx % cols_p
+            row = idx // cols_p
+            px = cx + col * (col_w + gap)
+            by = py + row * (icon_size + 10)
+
+            val = int(self.percentuais.get(key, 0))
+            icon = self._get_percent_icon(key, icon_size)
+            rect = pygame.Rect(px, by, icon_size, icon_size)
+            pygame.draw.rect(tela, (32, 32, 40), rect, border_radius=7)
+            pygame.draw.rect(tela, (90, 90, 110), rect, 1, border_radius=7)
+            if icon is not None:
+                tela.blit(icon, rect.topleft)
+
+            val_txt = self._font_tiny.render(f"{val}%", True, (220, 220, 235))
+            tela.blit(val_txt, (rect.right + 5, rect.y + (icon_size - val_txt.get_height()) // 2))
 
 class PlayerEstrategista:
     """
@@ -479,6 +529,7 @@ class PlayerEstrategista:
         self._font_small = None
         self._font_big = None
         self._font_hp = None
+        self._font_tiny = None
         self._font_micro = None
 
     # ----------------------------
