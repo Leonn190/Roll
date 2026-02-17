@@ -10,6 +10,7 @@ from Cartucho import Cartucho
 
 from Player import PlayerEstrategista
 from Brawl_Stars.Brawl import DECK_DEFS
+from VisualEffects import aplicar_filtro_luminosidade
 
 
 def _draw_btn_teste(tela, rect, font, mouse_pos):
@@ -100,12 +101,11 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
                 if pausa_ativa:
                     if btn_quitar.collidepoint(e.pos):
-                        estados["Rodando"] = False
+                        estados["Estrategista"] = False
+                        estados["Inicio"] = True
                         rodando = False
                     elif btn_voltar.collidepoint(e.pos):
-                        estados["Estrategista"] = False
-                        estados["Tematica"] = True
-                        rodando = False
+                        pausa_ativa = False
                     elif btn_config.collidepoint(e.pos):
                         estados["Estrategista"] = False
                         estados["Config"] = True
@@ -146,9 +146,9 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
         _draw_btn_teste(tela, btn_teste_batalha, fonte_btn, mouse_pos)
 
         if pausa_ativa:
-            overlay = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 140))
-            tela.blit(overlay, (0, 0))
+            escurecer = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
+            escurecer.fill((0, 0, 0, 190))
+            tela.blit(escurecer, (0, 0))
 
             cx, cy = tela.get_width() // 2, tela.get_height() // 2
             btn_quitar.center = (cx, cy - 90)
@@ -158,6 +158,7 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
             _draw_pause_btn(tela, btn_voltar, "Voltar", fonte_pausa, mouse_pos)
             _draw_pause_btn(tela, btn_config, "Config", fonte_pausa, mouse_pos)
 
+        aplicar_filtro_luminosidade(tela, config.get("Luminosidade", 75))
         pygame.display.flip()
 
     return
