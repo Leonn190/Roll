@@ -22,6 +22,7 @@ relogio = pygame.time.Clock()
 # CONFIG / INFO
 # ============================================================
 config = load_config()
+info = {}
 
 # ============================================================
 # IMPORT DAS TELAS
@@ -86,15 +87,15 @@ while estados["Rodando"]:
         ultima_tela = atual
 
     if estados.get("Inicio", False):
-        TelaInicial(tela, relogio, estados, config)
+        TelaInicial(tela, relogio, estados, config, info)
     elif estados.get("Tematica", False):
-        TelaTematica(tela, relogio, estados, config)
+        TelaTematica(tela, relogio, estados, config, info)
     elif estados.get("Estrategista", False):
-        TelaEstrategista(tela, relogio, estados, config)
+        TelaEstrategista(tela, relogio, estados, config, info)
     elif estados.get("Batalha", False):
-        TelaBatalha(tela, relogio, estados, config)
+        TelaBatalha(tela, relogio, estados, config, info)
     elif estados.get("Config", False):
-        TelaConfig(tela, relogio, estados, config)
+        TelaConfig(tela, relogio, estados, config, info)
 
     proxima = _estado_ativo(estados)
     if estados.get("Rodando", False) and proxima != ultima_tela:

@@ -472,6 +472,45 @@ class PlayerEstrategista:
         self.loja = loja
         self.painel = painel
 
+    def exportar_estado_compartilhado(self):
+        return {
+            "nome": str(self.nome),
+            "lado": str(self.lado),
+            "ouro": int(self.ouro),
+            "vida_max": int(self.vida_max),
+            "vida": int(self.vida),
+            "totais": {k: int(self.totais.get(k, 0)) for k in ATRIBUTOS},
+            "percentuais": {k: int(self.percentuais.get(k, 0)) for k, _ in PERCENT_LABELS},
+            "nivel": int(self.COMBATE_SLOTS_LIBERADOS),
+            "ativos": [a for a in ATRIBUTOS if self.dados_selecionados.get(a)],
+        }
+
+    def carregar_estado_compartilhado(self, dados: dict):
+        if not isinstance(dados, dict):
+            return
+
+        self.nome = str(dados.get("nome", self.nome))
+        self.lado = str(dados.get("lado", self.lado))
+        self.ouro = int(dados.get("ouro", self.ouro) or 0)
+        self.vida_max = int(dados.get("vida_max", self.vida_max) or 0)
+        self.vida = int(dados.get("vida", self.vida) or 0)
+
+        totais = dados.get("totais") or {}
+        for attr in ATRIBUTOS:
+            self.totais[attr] = int(totais.get(attr, self.totais.get(attr, 0)) or 0)
+            self.display_val[attr] = float(self.totais[attr])
+            self.anim[attr]["on"] = False
+
+        percentuais = dados.get("percentuais") or {}
+        for key, _ in PERCENT_LABELS:
+            self.percentuais[key] = int(percentuais.get(key, self.percentuais.get(key, 0)) or 0)
+
+        self.dados_selecionados = {k: [] for k in ATRIBUTOS}
+        ativos = dados.get("ativos") or []
+        for attr in ativos:
+            if attr in self.dados_selecionados:
+                self.dados_selecionados[attr] = [{"faces": [1, 2, 3, 4, 5, 6], "cartucho": None}]
+
     # ----------------------------
     # fontes
     # ----------------------------

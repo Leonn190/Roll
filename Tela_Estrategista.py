@@ -42,6 +42,10 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
     # player “dono” da tela
     player = PlayerEstrategista("ALIADO", lado="aliado", ouro_inicial=10)
 
+    dados_player = (info or {}).get("player_aliado") if isinstance(info, dict) else None
+    if isinstance(dados_player, dict) and hasattr(player, "carregar_estado_compartilhado"):
+        player.carregar_estado_compartilhado(dados_player)
+
     # liga referências no player (se existir)
     if hasattr(player, "set_refs"):
         player.set_refs(grid=grid, banco=banco, loja=loja, painel=painel)
@@ -112,6 +116,8 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
                         estados["RetornoConfig"] = "Estrategista"
                         rodando = False
                 elif btn_teste_batalha.collidepoint(e.pos):
+                    if isinstance(info, dict) and hasattr(player, "exportar_estado_compartilhado"):
+                        info["player_aliado"] = player.exportar_estado_compartilhado()
                     estados["Estrategista"] = False
                     estados["Batalha"] = True
                     rodando = False
@@ -135,15 +141,16 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
         if hasattr(player, "update"):
             player.update(agora)
 
-        # ficha no topo esquerdo
-        if hasattr(player, "draw_ficha"):
-            player.draw_ficha(tela, agora, pos=(18, 18))
+        if not pausa_ativa:
+            # ficha no topo esquerdo
+            if hasattr(player, "draw_ficha"):
+                player.draw_ficha(tela, agora, pos=(18, 18))
 
-        # dado arrastado deve ficar na frente da ficha do player
-        if hasattr(grid, "draw_dragging_dado_overlay"):
-            grid.draw_dragging_dado_overlay(tela, mouse_pos)
+            # dado arrastado deve ficar na frente da ficha do player
+            if hasattr(grid, "draw_dragging_dado_overlay"):
+                grid.draw_dragging_dado_overlay(tela, mouse_pos)
 
-        _draw_btn_teste(tela, btn_teste_batalha, fonte_btn, mouse_pos)
+            _draw_btn_teste(tela, btn_teste_batalha, fonte_btn, mouse_pos)
 
         if pausa_ativa:
             escurecer = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
