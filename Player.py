@@ -124,6 +124,8 @@ class PlayerBatalha:
         # base e intensificador por atributo (do tabuleiro)
         self.base = {k: 10.0 for k in ATRIBUTOS}
         self.intens = {k: 0 for k in ATRIBUTOS}
+        self.percentuais = {k: 0 for k, _ in PERCENT_LABELS}
+        self.percentuais["assertividade"] = 100
 
         # animação numérica/flash
         self.display_val = {k: self._calc_total(k) for k in ATRIBUTOS}
@@ -239,11 +241,19 @@ class PlayerBatalha:
     # ----------------------------
     # posição ficha
     # ----------------------------
-    def get_rect(self, tela: pygame.Surface, *, lado: str):
+    def get_rect(self, tela: pygame.Surface, *, lado: str, pos=None):
+        if pos is not None:
+            return pygame.Rect(int(pos[0]), int(pos[1]), self.FICHA_W, self.FICHA_H)
         margin = 18
         y = tela.get_height() - self.FICHA_H - margin
         x = margin if lado == "esquerda" else tela.get_width() - self.FICHA_W - margin
         return pygame.Rect(x, y, self.FICHA_W, self.FICHA_H)
+
+    def set_percentuais(self, valores: dict | None):
+        if not isinstance(valores, dict):
+            return
+        for key, _ in PERCENT_LABELS:
+            self.percentuais[key] = int(valores.get(key, self.percentuais.get(key, 0)) or 0)
 
     # ----------------------------
     # fonte
@@ -280,9 +290,9 @@ class PlayerBatalha:
     # ----------------------------
     # draw ficha (botões + hover + cores)
     # ----------------------------
-    def draw_ficha(self, tela: pygame.Surface, agora_ms: int, *, lado: str):
+    def draw_ficha(self, tela: pygame.Surface, agora_ms: int, *, lado: str, pos=None, mostrar_botoes=True):
         self._ensure_fonts()
-        painel = self.get_rect(tela, lado=lado)
+        painel = self.get_rect(tela, lado=lado, pos=pos)
 
         pygame.draw.rect(tela, self.FUNDO_PAINEL, painel, border_radius=14)
         pygame.draw.rect(tela, self.BORDA_PAINEL, painel, 3, border_radius=14)
@@ -325,6 +335,14 @@ class PlayerBatalha:
 
         # reset rects clicáveis
         self._attr_rects = {}
+
+        if not mostrar_botoes:
+            stats_top = grid_top
+            lh = 24
+            for i, (key, label) in enumerate(PERCENT_LABELS):
+                txt = self._font_small.render(f"{label}: {int(self.percentuais.get(key, 0))}%", True, (220, 225, 235))
+                tela.blit(txt, (cx + 8, stats_top + i * lh))
+            return
 
         for idx, attr in enumerate(ATRIBUTOS):
             col = idx % cols
