@@ -2,6 +2,8 @@ import pygame
 import sys
 import ctypes
 
+from ConfigStore import load_config
+
 try:
     ctypes.windll.user32.SetProcessDPIAware()
 except:
@@ -19,9 +21,7 @@ relogio = pygame.time.Clock()
 # ============================================================
 # CONFIG / INFO
 # ============================================================
-config = {
-    "FPS": 180,
-}
+config = load_config()
 
 # ============================================================
 # IMPORT DAS TELAS
@@ -30,10 +30,11 @@ from Tela_Inicial import TelaInicial
 from Tela_Tematica import TelaTematica
 from Tela_Estrategista import TelaEstrategista
 from Tela_Batalha import TelaBatalha
+from Tela_Config import TelaConfig
 
 
 def _estado_ativo(estados):
-    for key in ("Inicio", "Tematica", "Estrategista", "Batalha"):
+    for key in ("Inicio", "Tematica", "Estrategista", "Batalha", "Config"):
         if estados.get(key, False):
             return key
     return None
@@ -64,6 +65,8 @@ estados = {
     "Tematica": False,
     "Estrategista": False,
     "Batalha": False,
+    "Config": False,
+    "RetornoConfig": "Inicio",
 }
 
 # ============================================================
@@ -90,6 +93,8 @@ while estados["Rodando"]:
         TelaEstrategista(tela, relogio, estados, config)
     elif estados.get("Batalha", False):
         TelaBatalha(tela, relogio, estados, config)
+    elif estados.get("Config", False):
+        TelaConfig(tela, relogio, estados, config)
 
     proxima = _estado_ativo(estados)
     if estados.get("Rodando", False) and proxima != ultima_tela:
