@@ -12,6 +12,15 @@ from Player import PlayerEstrategista
 from Brawl_Stars.Brawl import DECK_DEFS
 
 
+def _draw_btn_teste(tela, rect, font, mouse_pos):
+    hover = rect.collidepoint(mouse_pos)
+    color = (120, 72, 168) if hover else (88, 50, 130)
+    pygame.draw.rect(tela, color, rect, border_radius=12)
+    pygame.draw.rect(tela, (212, 178, 248), rect, 2, border_radius=12)
+    txt = font.render("Teste: Batalha", True, (248, 240, 255))
+    tela.blit(txt, txt.get_rect(center=rect.center))
+
+
 def TelaEstrategista(tela, relogio, estados, config, info=None):
     grid = Grid(tela)
     banco = Banco(tela)
@@ -56,6 +65,9 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
     else:
         grid.campo_dirty = True
 
+    fonte_btn = pygame.font.Font("Fontes/FontePadrão.ttf", 22)
+    btn_teste_batalha = pygame.Rect(16, 92, 220, 52)
+
     rodando = True
     while rodando and estados.get("Rodando", True) and estados.get("Estrategista", False):
         relogio.tick(config.get("FPS", 60))
@@ -71,6 +83,11 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
             elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
                 estados["Rodando"] = False
                 rodando = False
+            elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
+                if btn_teste_batalha.collidepoint(e.pos):
+                    estados["Estrategista"] = False
+                    estados["Batalha"] = True
+                    rodando = False
 
         # grid continua fazendo drag/place por enquanto
         grid.update(events, agora, mouse_pos)
@@ -94,6 +111,8 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
         # dado arrastado deve ficar na frente da ficha do player
         if hasattr(grid, "draw_dragging_dado_overlay"):
             grid.draw_dragging_dado_overlay(tela, mouse_pos)
+
+        _draw_btn_teste(tela, btn_teste_batalha, fonte_btn, mouse_pos)
 
         pygame.display.flip()
 
