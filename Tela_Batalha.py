@@ -1,7 +1,7 @@
 import pygame
 
 from Tabuleiro import Tabuleiro
-from Player import PlayerBatalha, ATRIBUTOS
+from Player import PlayerBatalha, PlayerEstrategista, ATRIBUTOS
 from VisualEffects import aplicar_filtro_luminosidade
 
 
@@ -21,26 +21,36 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
     p1 = PlayerBatalha("Aliado", lado="aliado", nivel=3)   # nivel 3 => 3 dados ativos
     p2 = PlayerBatalha("Inimigo", lado="inimigo", nivel=3)
 
-    # vida/base (exemplo)
-    p1.vida_max, p1.vida = 120, 92
-    p2.vida_max, p2.vida = 140, 140
+    # ficha do aliado compartilhada com a tela de estrategista
+    p1_compartilhado = PlayerEstrategista("ALIADO", lado="aliado", ouro_inicial=0)
+    dados_player = (info or {}).get("player_aliado") if isinstance(info, dict) else None
+    if isinstance(dados_player, dict):
+        p1_compartilhado.carregar_estado_compartilhado(dados_player)
 
-    p1.set_base("regeneracao", 380)
-    p1.set_base("dano_fisico", 120)
-    p1.set_base("mana", 210)
+    # vida/base (inimigo permanece como está)
+    p2.vida_max, p2.vida = 140, 140
 
     p2.set_base("defesa_magica", 300)
     p2.set_base("dano_magico", 160)
     p2.set_base("velocidade", 90)
 
-    # exemplo: liga 3 atributos iniciais pra cada (dentro do limite do nível)
-    p1.toggle_attr_ativo("regeneracao")
-    p1.toggle_attr_ativo("dano_fisico")
-    p1.toggle_attr_ativo("mana")
+    # atributos ativos do aliado vindos da seleção da tela estrategista
+    ativos_aliados = [a for a in ATRIBUTOS if p1_compartilhado.dados_selecionados.get(a)]
+    for attr in ativos_aliados[:p1.max_ativos()]:
+        p1.toggle_attr_ativo(attr)
+
+    # fallback para garantir mão mínima no combate
+    if not p1.ativos_lista():
+        p1.toggle_attr_ativo("regeneracao")
+        p1.toggle_attr_ativo("dano_fisico")
+        p1.toggle_attr_ativo("mana")
 
     p2.toggle_attr_ativo("defesa_magica")
     p2.toggle_attr_ativo("dano_magico")
     p2.toggle_attr_ativo("velocidade")
+
+    for attr in ATRIBUTOS:
+        p1.set_base(attr, int(p1_compartilhado.totais.get(attr, 0)))
 
     # cache pra aplicar intensificadores apenas quando mudar
     last_somas = {
@@ -103,7 +113,6 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
 
         # clique nos botões de status (ativa/inativa)
         # (isso NÃO interfere no Tabuleiro; só muda quais dados vão pra mão)
-        p1.handle_events(events, mouse_pos, lado_ficha="esquerda")
         p2.handle_events(events, mouse_pos, lado_ficha="direita")
 
         # monta a mão do tabuleiro a partir do lado ativo
@@ -121,9 +130,10 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
         if tabuleiro.esta_estavel():
             aplicar_somas_nos_players(agora)
 
-        # desenha fichas por cima
-        p1.draw_ficha(tela, agora, lado="esquerda")
-        p2.draw_ficha(tela, agora, lado="direita")
+        # desenha fichas por cima (esconde durante pausa/opções)
+        if not pausa_ativa:
+            p1_compartilhado.draw_ficha(tela, agora, pos=(18, 18))
+            p2.draw_ficha(tela, agora, lado="direita")
 
         if pausa_ativa:
             escurecer = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
