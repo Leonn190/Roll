@@ -16,13 +16,22 @@ def _proj_pos(origem, destino, t):
     return (_lerp(origem[0], destino[0], t), _lerp(origem[1], destino[1], t))
 
 
+def _cor_texto_contraste(cor_fundo):
+    r, g, b = cor_fundo
+    luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b
+    return (20, 20, 24) if luminancia > 150 else (248, 248, 252)
+
+
 def _draw_valor(tela, pos, valor, cor=(255, 255, 255)):
     if valor is None:
         return
     texto = str(int(valor))
-    font = pygame.font.Font("Fontes/FontePadrão.ttf", 18)
+    font = pygame.font.Font("Fontes/FontePadrão.ttf", 22)
+    surf_contorno = font.render(texto, True, (0, 0, 0))
     surf = font.render(texto, True, cor)
     rect = surf.get_rect(center=(int(pos[0]), int(pos[1])))
+    for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+        tela.blit(surf_contorno, rect.move(dx, dy))
     tela.blit(surf, rect)
 
 
@@ -37,15 +46,16 @@ def draw_bola_ataque(tela, pos, raio, cor, valor=None):
         pts.append((int(x + math.cos(ang) * r), int(y + math.sin(ang) * r)))
 
     pygame.draw.polygon(tela, cor, pts)
-    pygame.draw.circle(tela, (250, 250, 250), (x, y), max(2, raio // 4))
-    _draw_valor(tela, (x, y), valor)
+    pygame.draw.polygon(tela, (255, 255, 255), pts, 2)
+    pygame.draw.circle(tela, (250, 250, 250), (x, y), max(3, raio // 4))
+    _draw_valor(tela, (x, y), valor, _cor_texto_contraste(cor))
 
 
 def draw_bola_defesa(tela, pos, raio, cor, valor=None):
     x, y = int(pos[0]), int(pos[1])
     pygame.draw.circle(tela, cor, (x, y), raio)
     pygame.draw.circle(tela, (245, 245, 255), (x, y), raio, 2)
-    _draw_valor(tela, (x, y), valor)
+    _draw_valor(tela, (x, y), valor, _cor_texto_contraste(cor))
 
 
 def build_anim_steps(logs):
@@ -75,7 +85,7 @@ def draw_acao_batalha(tela, acao, t, pos_por_nome):
 
     kind = acao.get("kind", "fisico")
     if kind == "regen":
-        raio = 16
+        raio = 21
         loop_t = min(1.0, t)
         ida_t = loop_t * 2.0 if loop_t <= 0.5 else (1.0 - loop_t) * 2.0
         ang = math.pi * ida_t
@@ -89,28 +99,39 @@ def draw_acao_batalha(tela, acao, t, pos_por_nome):
     bg.fill((*cor, 40))
     tela.blit(bg, (0, 0))
 
-    collide_t = 0.6
+    collide_t = 0.68
     ataque_total = acao.get("raw_damage", acao.get("damage", 0))
     ataque_final = acao.get("damage", 0)
+    defesa_valor = acao.get("defense_block", 0)
 
     if t < collide_t:
         fase = t / collide_t
         p_ataque = _proj_pos(atacante, defensor, fase)
         p_defesa = _proj_pos(defensor, atacante, min(1.0, fase * 0.85))
-        draw_bola_ataque(tela, p_ataque, 15, cor, ataque_total)
-        draw_bola_defesa(tela, p_defesa, 13, (220, 220, 220), acao.get("defense_block", 0))
+        draw_bola_ataque(tela, p_ataque, 21, cor, ataque_total)
+        draw_bola_defesa(tela, p_defesa, 18, (225, 228, 238), defesa_valor)
         return
 
     hit = bool(acao.get("hit", True))
     if hit:
-        retorno_t = (t - collide_t) / max(0.001, 1.0 - collide_t)
+        pos_colisao = _proj_pos(atacante, defensor, 1.0)
+        resto_t = (t - collide_t) / max(0.001, 1.0 - collide_t)
+        fase_reducao = min(1.0, resto_t / 0.45)
+        valor_animado = max(ataque_final, round(_lerp(ataque_total, ataque_final, fase_reducao)))
+        raio = int(_lerp(23, 17, fase_reducao))
+        if resto_t <= 0.45:
+            # defesa some na colisão e o ataque encolhe número/raio
+            draw_bola_ataque(tela, pos_colisao, raio, cor, valor_animado)
+            return
+
+        retorno_t = (resto_t - 0.45) / 0.55
         p_ataque = _proj_pos(defensor, atacante, min(1.0, retorno_t * 0.45))
-        draw_bola_ataque(tela, p_ataque, 15, cor, ataque_final)
+        draw_bola_ataque(tela, p_ataque, 17, cor, ataque_final)
     else:
         # errou: as duas bolas somem após cruzar
         sumir_t = (t - collide_t) / max(0.001, 1.0 - collide_t)
         if sumir_t < 0.4:
             p_ataque = _proj_pos(atacante, defensor, 1.0)
             p_defesa = _proj_pos(defensor, atacante, 1.0)
-            draw_bola_ataque(tela, p_ataque, 12, cor, 0)
-            draw_bola_defesa(tela, p_defesa, 11, (220, 220, 220), 0)
+            draw_bola_ataque(tela, p_ataque, 16, cor, 0)
+            draw_bola_defesa(tela, p_defesa, 14, (225, 228, 238), 0)
