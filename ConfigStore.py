@@ -6,7 +6,7 @@ CONFIG_PATH = "config.json"
 DEFAULT_CONFIG = {
     "FPS": 180,
     "Volume": 50,
-    "Luminosidade": 50,
+    "Luminosidade": 75,
 }
 
 

@@ -1,6 +1,8 @@
 import os
 import pygame
 
+from VisualEffects import aplicar_filtro_luminosidade
+
 
 def _draw_button(tela, rect, text, font, mouse_pos, enabled=True):
     hover = rect.collidepoint(mouse_pos)
@@ -49,7 +51,8 @@ def TelaTematica(tela, relogio, estados, config, info=None):
                 estados["Rodando"] = False
                 rodando = False
             elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
-                estados["Rodando"] = False
+                estados["Tematica"] = False
+                estados["Inicio"] = True
                 rodando = False
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
                 if btn_brawl.collidepoint(e.pos):
@@ -71,6 +74,7 @@ def TelaTematica(tela, relogio, estados, config, info=None):
         _draw_button(tela, btn_brawl, "BRAWL STARS", fonte_btn, mouse_pos, enabled=True)
         _draw_button(tela, btn_voltar, "VOLTAR", fonte_btn, mouse_pos, enabled=True)
 
+        aplicar_filtro_luminosidade(tela, config.get("Luminosidade", 75))
         pygame.display.flip()
 
     return

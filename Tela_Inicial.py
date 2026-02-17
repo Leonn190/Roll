@@ -1,6 +1,8 @@
 import os
 import pygame
 
+from VisualEffects import aplicar_filtro_luminosidade
+
 
 def _draw_button(tela, rect, text, font, mouse_pos, pressed=False):
     hover = rect.collidepoint(mouse_pos)
@@ -81,6 +83,7 @@ def TelaInicial(tela, relogio, estados, config, info=None):
         _draw_button(tela, btn_config, "CONFIG", fonte_btn, mouse_pos, pressed_config)
         _draw_button(tela, btn_sair, "SAIR", fonte_btn, mouse_pos, pressed_sair)
 
+        aplicar_filtro_luminosidade(tela, config.get("Luminosidade", 75))
         pygame.display.flip()
 
     return
