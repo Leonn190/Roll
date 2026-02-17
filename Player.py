@@ -875,7 +875,7 @@ class PlayerEstrategista:
         slots_top = painel.bottom + 12
         tela.blit(title, (painel.x + 4, slots_top))
 
-        slot_size = 58
+        slot_size = 66
         slot_gap = 10
         start_x = painel.x + 6
         start_y = slots_top + title.get_height() + 8

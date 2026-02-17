@@ -401,7 +401,9 @@ class Grid:
                 if self.dragging_dado is not None:
                     if self.player is not None:
                         if hasattr(self.player, "drop_combatente_em_slot"):
-                            self.player.drop_combatente_em_slot(mouse_pos, self.dragging_dado.get("cartucho"))
+                            moved_to_combate = self.player.drop_combatente_em_slot(mouse_pos, self.dragging_dado.get("cartucho"))
+                            if moved_to_combate:
+                                self.campo_dirty = True
                         if hasattr(self.player, "drop_dado_em_attr"):
                             self.player.drop_dado_em_attr(mouse_pos, self.dragging_dado)
                     self.dragging_dado = None

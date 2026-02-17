@@ -237,12 +237,7 @@ class PainelSinergia:
             shown_n = active_counts.get(syn_norm, n) if is_active else n
             texto = f"{nome}  [{shown_n}]"
             ts = font_item.render(texto, True, color)
-            icon_rect = pygame.Rect(x, y + 3, 14, 14)
-            icon_color = color if has_on_grid else (80, 80, 96)
-            pygame.draw.rect(surf, icon_color, icon_rect, border_radius=4)
-            pygame.draw.rect(surf, CORES_RARIDADE.get(raridade, (70, 70, 90)), icon_rect, 2, border_radius=4)
-
-            text_pos = (x + 22, y)
+            text_pos = (x, y)
             item_rect = ts.get_rect(topleft=text_pos)
             _draw_text_with_outline(surf, font_item, texto, color, (0, 0, 0), text_pos, esp=1)
             self._item_rects[syn_norm] = item_rect
