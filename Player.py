@@ -299,19 +299,14 @@ class PlayerBatalha:
     # eventos: clique nos botões de atributo
     # ----------------------------
     def handle_events(self, events, mouse_pos, *, lado_ficha: str):
-        """
-        Chame isso na TelaBatalha antes do draw, porque os rects são preenchidos no draw_ficha.
-        Então, aqui só consome clique se já existir rect daquela frame.
-        """
         if not self._attr_rects:
             return
 
         for e in events:
             if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                # clique dentro da ficha?
-                # checa botões
+                clique_pos = getattr(e, "pos", mouse_pos)
                 for attr, rect in self._attr_rects.items():
-                    if rect.collidepoint(mouse_pos):
+                    if rect.collidepoint(clique_pos):
                         self.toggle_attr_ativo(attr)
                         return
 

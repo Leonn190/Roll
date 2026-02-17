@@ -1,63 +1,11 @@
 import pygame
 import random
-import math
 
 from Tabuleiro import Tabuleiro
 from Player import PlayerBatalha, PlayerEstrategista, ATRIBUTOS
 from VisualEffects import aplicar_filtro_luminosidade
 from CombatMath import execute_round
-
-
-DANO_CORES = {
-    "fisico": (255, 140, 40),
-    "magico": (175, 70, 255),
-    "regen": (80, 220, 120),
-}
-
-
-def _lerp(a, b, t):
-    return a + (b - a) * t
-
-
-def _proj_pos(origem, destino, t):
-    return (_lerp(origem[0], destino[0], t), _lerp(origem[1], destino[1], t))
-
-
-def _draw_bola_ataque(tela, pos, raio, cor):
-    x, y = int(pos[0]), int(pos[1])
-    pygame.draw.circle(tela, cor, (x, y), raio)
-    pygame.draw.circle(tela, (250, 250, 250), (x, y), max(1, raio // 4))
-    # espinhos da bola de dano
-    for i in range(8):
-        ang = (math.pi * 2 * i) / 8.0
-        ox = int(x + math.cos(ang) * (raio + 2))
-        oy = int(y + math.sin(ang) * (raio + 2))
-        tx = int(x + math.cos(ang) * (raio + 7))
-        ty = int(y + math.sin(ang) * (raio + 7))
-        pygame.draw.line(tela, cor, (ox, oy), (tx, ty), 2)
-
-
-def _draw_bola_defesa(tela, pos, raio, cor):
-    x, y = int(pos[0]), int(pos[1])
-    pygame.draw.circle(tela, cor, (x, y), raio)
-    pygame.draw.circle(tela, (245, 245, 255), (x, y), raio, 2)
-
-
-def _build_anim_steps(logs):
-    steps = []
-    for nome_a, nome_d, info_hit in logs:
-        steps.append(
-            {
-                "attacker": nome_a,
-                "defender": nome_d,
-                "kind": info_hit.get("kind", "fisico"),
-                "hit": bool(info_hit.get("hit", True)),
-                "damage": int(info_hit.get("damage", 0) or 0),
-                "heal": int(info_hit.get("heal", 0) or 0),
-                "applied": False,
-            }
-        )
-    return steps
+from BattleAnimation import build_anim_steps, draw_acao_batalha
 
 
 def _draw_pause_btn(tela, rect, label, font, mouse_pos):
@@ -73,31 +21,6 @@ def _draw_status(tela, texto, timer_s):
     fonte = pygame.font.Font("Fontes/FontePadrão.ttf", 34)
     t = fonte.render(f"{texto}: {timer_s}s", True, (245, 245, 245))
     tela.blit(t, (tela.get_width() // 2 - t.get_width() // 2, 18))
-
-
-def _draw_acao_batalha(tela, acao, t, pos_por_nome):
-    atacante = pos_por_nome.get(acao["attacker"])
-    defensor = pos_por_nome.get(acao["defender"])
-    if atacante is None or defensor is None:
-        return
-
-    kind = acao.get("kind", "fisico")
-    if kind == "regen":
-        offset = 24 + int(10 * math.sin(t * math.pi * 2.0))
-        p_saida = (atacante[0] + offset, atacante[1] - 25)
-        _draw_bola_defesa(tela, p_saida, 10, DANO_CORES["regen"])
-        return
-
-    cor = DANO_CORES.get(kind, (230, 230, 230))
-    bg = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
-    bg.fill((*cor, 40))
-    tela.blit(bg, (0, 0))
-
-    p_ataque = _proj_pos(atacante, defensor, t)
-    p_defesa = _proj_pos(defensor, atacante, min(1.0, t * 0.9))
-    raio_ataque = 10 if acao.get("hit", True) else 8
-    _draw_bola_ataque(tela, p_ataque, raio_ataque, cor)
-    _draw_bola_defesa(tela, p_defesa, 8, (220, 220, 220))
 
 
 def TelaBatalha(tela, relogio, estados, config, info=None):
@@ -171,7 +94,7 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
         tabuleiro.mao_aliada = p1.get_dados_ativos_para_lancar()
         tabuleiro.mao_inimiga = p2.get_dados_ativos_para_lancar()
         tabuleiro.set_lado_ativo("aliado")
-        # inimigo já lança para o jogador ter só 5s para responder
+        # inimigo já lança para o jogador ter 8s para responder
         tabuleiro.lancar_automatico("inimigo", agora)
 
     fonte_pausa = pygame.font.Font("Fontes/FontePadrão.ttf", 30)
@@ -182,12 +105,15 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
 
     fase = "escolha"
     fase_inicio = pygame.time.get_ticks()
-    fase_duracao = 6000
+    fase_duracao = 8000
     anim_steps = []
     anim_idx = 0
     anim_inicio = 0
-    anim_step_ms = 900
+    anim_step_ms = 1400
     vencedor_nome = None
+    fim_delay_ms = 1200
+    fim_inicio = 0
+    bonus_vitoria = 8
     iniciar_round(fase_inicio)
 
     def aplicar_efeito_acao(acao):
@@ -256,7 +182,7 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                 vida_p1_pre = p1.vida
                 vida_p2_pre = p2.vida
                 resultado = execute_round(p1, p2)
-                anim_steps = _build_anim_steps(resultado["logs"])
+                anim_steps = build_anim_steps(resultado["logs"])
                 p1.vida = vida_p1_pre
                 p2.vida = vida_p2_pre
                 anim_idx = 0
@@ -269,17 +195,25 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                     if t_anim >= 1.0 and not acao["applied"]:
                         aplicar_efeito_acao(acao)
                         acao["applied"] = True
+                        if p1.vida <= 0:
+                            vencedor_nome = p2.nome
+                            fim_inicio = agora
+                        elif p2.vida <= 0:
+                            vencedor_nome = p1.nome
+                            fim_inicio = agora
                         anim_idx += 1
                         anim_inicio = agora
                 else:
                     if p1.vida <= 0:
                         vencedor_nome = p2.nome
+                        fim_inicio = agora
                     elif p2.vida <= 0:
                         vencedor_nome = p1.nome
+                        fim_inicio = agora
                     else:
                         fase = "escolha"
                         fase_inicio = agora
-                        fase_duracao = 6000
+                        fase_duracao = 8000
                         iniciar_round(agora)
 
         if not pausa_ativa:
@@ -302,7 +236,18 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                     p2.nome: (tela.get_width() - p2.FICHA_W // 2 - 18, 18 + p2.FICHA_H // 2),
                 }
                 progresso = min(1.0, (agora - anim_inicio) / max(1, anim_step_ms))
-                _draw_acao_batalha(tela, anim_steps[anim_idx], progresso, pos_por_nome)
+                draw_acao_batalha(tela, anim_steps[anim_idx], progresso, pos_por_nome)
+
+        if vencedor_nome and not pausa_ativa and (agora - fim_inicio) >= fim_delay_ms:
+            if isinstance(info, dict):
+                if vencedor_nome == p1.nome:
+                    p1_compartilhado.ouro = int(p1_compartilhado.ouro) + bonus_vitoria
+                p1_compartilhado.vida = int(max(0, p1.vida))
+                p1_compartilhado.vida_max = int(max(1, p1.vida_max))
+                info["player_aliado"] = p1_compartilhado.exportar_estado_compartilhado()
+            estados["Batalha"] = False
+            estados["Estrategista"] = True
+            rodando = False
 
         if pausa_ativa:
             escurecer = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
