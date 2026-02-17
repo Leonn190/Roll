@@ -4,6 +4,15 @@ from Tabuleiro import Tabuleiro
 from Player import PlayerBatalha, ATRIBUTOS
 
 
+def _draw_pause_btn(tela, rect, label, font, mouse_pos):
+    hover = rect.collidepoint(mouse_pos)
+    color = (80, 92, 132) if hover else (55, 64, 92)
+    pygame.draw.rect(tela, color, rect, border_radius=12)
+    pygame.draw.rect(tela, (170, 188, 235), rect, 2, border_radius=12)
+    txt = font.render(label, True, (242, 246, 255))
+    tela.blit(txt, txt.get_rect(center=rect.center))
+
+
 def TelaBatalha(tela, relogio, estados, config, info=None):
     tabuleiro = Tabuleiro(tela)
 
@@ -54,6 +63,12 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                 p2.set_intensificador(attr, novo, agora)
                 last_somas["inimigo"][attr] = novo
 
+    fonte_pausa = pygame.font.Font("Fontes/FontePadrão.ttf", 30)
+    pausa_ativa = False
+    btn_quitar = pygame.Rect(0, 0, 240, 70)
+    btn_voltar = pygame.Rect(0, 0, 240, 70)
+    btn_config = pygame.Rect(0, 0, 240, 70)
+
     rodando = True
     while rodando and estados.get("Rodando", True) and estados.get("Batalha", False):
         relogio.tick(config.get("FPS", 60))
@@ -67,8 +82,20 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                 estados["Rodando"] = False
                 rodando = False
             elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
-                estados["Rodando"] = False
-                rodando = False
+                pausa_ativa = not pausa_ativa
+            elif e.type == pygame.MOUSEBUTTONUP and e.button == 1 and pausa_ativa:
+                if btn_quitar.collidepoint(e.pos):
+                    estados["Rodando"] = False
+                    rodando = False
+                elif btn_voltar.collidepoint(e.pos):
+                    estados["Batalha"] = False
+                    estados["Estrategista"] = True
+                    rodando = False
+                elif btn_config.collidepoint(e.pos):
+                    estados["Batalha"] = False
+                    estados["Config"] = True
+                    estados["RetornoConfig"] = "Batalha"
+                    rodando = False
 
         # players atualizam animações
         p1.update(agora)
@@ -87,7 +114,8 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
             tabuleiro.mao_inimiga = p2.get_dados_ativos_para_lancar()
 
         # tabuleiro processa eventos + anima + desenha
-        tabuleiro.update(events, agora)
+        if not pausa_ativa:
+            tabuleiro.update(events, agora)
 
         # aplica intensificadores vindos do tabuleiro
         if tabuleiro.esta_estavel():
@@ -96,6 +124,19 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
         # desenha fichas por cima
         p1.draw_ficha(tela, agora, lado="esquerda")
         p2.draw_ficha(tela, agora, lado="direita")
+
+        if pausa_ativa:
+            overlay = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 140))
+            tela.blit(overlay, (0, 0))
+
+            cx, cy = tela.get_width() // 2, tela.get_height() // 2
+            btn_quitar.center = (cx, cy - 90)
+            btn_voltar.center = (cx, cy)
+            btn_config.center = (cx, cy + 90)
+            _draw_pause_btn(tela, btn_quitar, "Quitar", fonte_pausa, mouse_pos)
+            _draw_pause_btn(tela, btn_voltar, "Voltar", fonte_pausa, mouse_pos)
+            _draw_pause_btn(tela, btn_config, "Config", fonte_pausa, mouse_pos)
 
         pygame.display.flip()
 

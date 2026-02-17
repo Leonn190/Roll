@@ -26,9 +26,11 @@ def TelaInicial(tela, relogio, estados, config, info=None):
     btn_w, btn_h = 320, 90
 
     btn_jogar = pygame.Rect(0, 0, btn_w, btn_h)
+    btn_config = pygame.Rect(0, 0, btn_w, btn_h)
     btn_sair = pygame.Rect(0, 0, btn_w, btn_h)
-    btn_jogar.center = (W // 2, H // 2 + 40)
-    btn_sair.center = (W // 2, H // 2 + 160)
+    btn_jogar.center = (W // 2, H // 2 + 10)
+    btn_config.center = (W // 2, H // 2 + 130)
+    btn_sair.center = (W // 2, H // 2 + 250)
 
     rodando = True
     while rodando and estados.get("Rodando", True) and estados.get("Inicio", False):
@@ -37,6 +39,7 @@ def TelaInicial(tela, relogio, estados, config, info=None):
         mouse_pos = pygame.mouse.get_pos()
 
         pressed_jogar = False
+        pressed_config = False
         pressed_sair = False
 
         for e in events:
@@ -49,12 +52,19 @@ def TelaInicial(tela, relogio, estados, config, info=None):
             elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 if btn_jogar.collidepoint(e.pos):
                     pressed_jogar = True
+                elif btn_config.collidepoint(e.pos):
+                    pressed_config = True
                 elif btn_sair.collidepoint(e.pos):
                     pressed_sair = True
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
                 if btn_jogar.collidepoint(e.pos):
                     estados["Inicio"] = False
                     estados["Tematica"] = True
+                    rodando = False
+                elif btn_config.collidepoint(e.pos):
+                    estados["Inicio"] = False
+                    estados["Config"] = True
+                    estados["RetornoConfig"] = "Inicio"
                     rodando = False
                 elif btn_sair.collidepoint(e.pos):
                     estados["Rodando"] = False
@@ -68,6 +78,7 @@ def TelaInicial(tela, relogio, estados, config, info=None):
         tela.blit(subtitle, subtitle.get_rect(center=(W // 2, H // 2 - 65)))
 
         _draw_button(tela, btn_jogar, "JOGAR", fonte_btn, mouse_pos, pressed_jogar)
+        _draw_button(tela, btn_config, "CONFIG", fonte_btn, mouse_pos, pressed_config)
         _draw_button(tela, btn_sair, "SAIR", fonte_btn, mouse_pos, pressed_sair)
 
         pygame.display.flip()

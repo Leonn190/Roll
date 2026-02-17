@@ -17,7 +17,16 @@ def _draw_btn_teste(tela, rect, font, mouse_pos):
     color = (120, 72, 168) if hover else (88, 50, 130)
     pygame.draw.rect(tela, color, rect, border_radius=12)
     pygame.draw.rect(tela, (212, 178, 248), rect, 2, border_radius=12)
-    txt = font.render("Teste: Batalha", True, (248, 240, 255))
+    txt = font.render("Pronto", True, (248, 240, 255))
+    tela.blit(txt, txt.get_rect(center=rect.center))
+
+
+def _draw_pause_btn(tela, rect, label, font, mouse_pos):
+    hover = rect.collidepoint(mouse_pos)
+    color = (80, 92, 132) if hover else (55, 64, 92)
+    pygame.draw.rect(tela, color, rect, border_radius=12)
+    pygame.draw.rect(tela, (170, 188, 235), rect, 2, border_radius=12)
+    txt = font.render(label, True, (242, 246, 255))
     tela.blit(txt, txt.get_rect(center=rect.center))
 
 
@@ -66,7 +75,13 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
         grid.campo_dirty = True
 
     fonte_btn = pygame.font.Font("Fontes/FontePadrão.ttf", 22)
-    btn_teste_batalha = pygame.Rect(16, 92, 220, 52)
+    fonte_pausa = pygame.font.Font("Fontes/FontePadrão.ttf", 30)
+    btn_teste_batalha = pygame.Rect(0, 0, 220, 52)
+
+    pausa_ativa = False
+    btn_quitar = pygame.Rect(0, 0, 240, 70)
+    btn_voltar = pygame.Rect(0, 0, 240, 70)
+    btn_config = pygame.Rect(0, 0, 240, 70)
 
     rodando = True
     while rodando and estados.get("Rodando", True) and estados.get("Estrategista", False):
@@ -81,16 +96,32 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
                 estados["Rodando"] = False
                 rodando = False
             elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
-                estados["Rodando"] = False
-                rodando = False
+                pausa_ativa = not pausa_ativa
             elif e.type == pygame.MOUSEBUTTONUP and e.button == 1:
-                if btn_teste_batalha.collidepoint(e.pos):
+                if pausa_ativa:
+                    if btn_quitar.collidepoint(e.pos):
+                        estados["Rodando"] = False
+                        rodando = False
+                    elif btn_voltar.collidepoint(e.pos):
+                        estados["Estrategista"] = False
+                        estados["Tematica"] = True
+                        rodando = False
+                    elif btn_config.collidepoint(e.pos):
+                        estados["Estrategista"] = False
+                        estados["Config"] = True
+                        estados["RetornoConfig"] = "Estrategista"
+                        rodando = False
+                elif btn_teste_batalha.collidepoint(e.pos):
                     estados["Estrategista"] = False
                     estados["Batalha"] = True
                     rodando = False
 
-        # grid continua fazendo drag/place por enquanto
-        grid.update(events, agora, mouse_pos)
+        grid_rect = grid.rect()
+        btn_teste_batalha.center = (grid_rect.centerx, grid_rect.bottom + 30)
+
+        if not pausa_ativa:
+            # grid continua fazendo drag/place por enquanto
+            grid.update(events, agora, mouse_pos)
 
         # recalcula stats/sinergias só quando o campo muda
         if getattr(grid, "campo_dirty", False):
@@ -113,6 +144,19 @@ def TelaEstrategista(tela, relogio, estados, config, info=None):
             grid.draw_dragging_dado_overlay(tela, mouse_pos)
 
         _draw_btn_teste(tela, btn_teste_batalha, fonte_btn, mouse_pos)
+
+        if pausa_ativa:
+            overlay = pygame.Surface(tela.get_size(), pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 140))
+            tela.blit(overlay, (0, 0))
+
+            cx, cy = tela.get_width() // 2, tela.get_height() // 2
+            btn_quitar.center = (cx, cy - 90)
+            btn_voltar.center = (cx, cy)
+            btn_config.center = (cx, cy + 90)
+            _draw_pause_btn(tela, btn_quitar, "Quitar", fonte_pausa, mouse_pos)
+            _draw_pause_btn(tela, btn_voltar, "Voltar", fonte_pausa, mouse_pos)
+            _draw_pause_btn(tela, btn_config, "Config", fonte_pausa, mouse_pos)
 
         pygame.display.flip()
 
