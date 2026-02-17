@@ -1,5 +1,6 @@
 import random
 
+
 def _clamp(v, a, b):
     return a if v < a else b if v > b else v
 
@@ -23,6 +24,12 @@ def _crit_multiplier(attacker):
     return 1.0 + max(0.0, _pct(attacker, "dano_crit", 0) / 100.0)
 
 
+def _armor_multiplier_lol(armor):
+    if armor >= 0:
+        return 100.0 / (100.0 + armor)
+    return 2.0 - (100.0 / (100.0 - armor))
+
+
 def _damage_after_mods(base_damage, attacker, defender):
     if base_damage <= 0:
         return 0
@@ -33,11 +40,11 @@ def _damage_after_mods(base_damage, attacker, defender):
     return int(round(final_damage))
 
 
-def _effective_defenses(defender):
-    pen = max(0.0, _total(defender, "penetracao"))
-    half_pen = pen / 2.0
-    df = max(0.0, _total(defender, "defesa_fisica") - half_pen)
-    dm = max(0.0, _total(defender, "defesa_magica") - half_pen)
+def _effective_defenses(attacker, defender):
+    pen_total = max(0.0, _total(attacker, "penetracao"))
+    pen_split = pen_total / 2.0
+    df = _total(defender, "defesa_fisica") - pen_split
+    dm = _total(defender, "defesa_magica") - pen_split
     return df, dm
 
 
@@ -45,25 +52,21 @@ def _compute_hit(attacker, defender, kind):
     if not _hit(attacker):
         return {"kind": kind, "hit": False, "damage": 0, "heal": 0}
 
-    df, dm = _effective_defenses(defender)
+    df, dm = _effective_defenses(attacker, defender)
     if kind == "fisico":
-        raw = max(0.0, _total(attacker, "dano_fisico") - df)
+        raw = max(0.0, _total(attacker, "dano_fisico"))
+        mitigado = raw * _armor_multiplier_lol(df)
     else:
-        raw = max(0.0, _total(attacker, "dano_magico") - dm)
+        raw = max(0.0, _total(attacker, "dano_magico"))
+        mitigado = raw * _armor_multiplier_lol(dm)
 
-    damage = _damage_after_mods(raw, attacker, defender)
+    damage = _damage_after_mods(mitigado, attacker, defender)
     vamp = max(0.0, _pct(attacker, "vampirismo", 0) / 100.0)
     heal = int(round(damage * vamp))
     return {"kind": kind, "hit": True, "damage": damage, "heal": heal}
 
 
 def _hit_slots(attacker, defender):
-    """
-    Quantos golpes o atacante encaixa antes do defensor agir.
-    >=3x velocidade: encaixa físico + mágico.
-    >=2x velocidade: encaixa apenas físico antes da resposta.
-    caso contrário: 1 (ordem alternada padrão).
-    """
     a_spd = max(1.0, _total(attacker, "velocidade"))
     d_spd = max(1.0, _total(defender, "velocidade"))
     ratio = a_spd / d_spd
@@ -75,13 +78,6 @@ def _hit_slots(attacker, defender):
 
 
 def execute_round(attacker, defender):
-    """
-    Ordem da rodada:
-    1) prioridade por velocidade
-    2) físico, resposta física
-    3) mágico, resposta mágica
-    4) regeneração bruta
-    """
     a_spd = _total(attacker, "velocidade")
     d_spd = _total(defender, "velocidade")
 
@@ -98,12 +94,10 @@ def execute_round(attacker, defender):
             att.vida = min(att.vida_max, att.vida + hit["heal"])
         logs.append((att.nome, deff.nome, hit))
 
-    # fase física
     apply(first, second, "fisico")
     if second.vida > 0 and first_pre_hits < 1:
         apply(second, first, "fisico")
 
-    # fase mágica
     if second.vida > 0 and first_pre_hits >= 2:
         apply(first, second, "magico")
 
@@ -112,7 +106,6 @@ def execute_round(attacker, defender):
         if second.vida > 0:
             apply(second, first, "magico")
 
-    # regeneração bruta no fim
     for p in (attacker, defender):
         regen = max(0, int(round(_total(p, "regeneracao"))))
         if regen > 0 and p.vida > 0:
