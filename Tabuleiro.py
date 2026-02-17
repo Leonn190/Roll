@@ -129,6 +129,16 @@ class Tabuleiro:
             pot = "rnd"
             lst.append({"attr": attr, "pot": pot, "faces": faces})
 
+
+    def lancar_automatico(self, lado: str, agora_ms: int):
+        """Lança toda a mão do lado informado em uma célula aleatória."""
+        if lado not in ("aliado", "inimigo"):
+            return
+        self.lado_ativo = lado
+        base_cell = (random.randint(0, BOARD_SIZE - 1), random.randint(0, BOARD_SIZE - 1))
+        base_pos = self._grid_center(base_cell[0], base_cell[1])
+        self._lancar_mao(base_pos, base_cell, agora_ms, modo="normal")
+
     # ============================================================
     # update: processa eventos + atualiza animações + desenha
     # (com teclas extras de teste dentro da classe)
