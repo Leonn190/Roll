@@ -5,7 +5,7 @@ from Tabuleiro import Tabuleiro
 from Player import PlayerBatalha, PlayerEstrategista, ATRIBUTOS
 from VisualEffects import aplicar_filtro_luminosidade
 from CombatMath import execute_round
-from BattleAnimation import build_anim_steps, draw_acao_batalha
+from BattleAnimation import build_anim_steps, draw_acao_batalha, calc_collision_t
 
 
 def _draw_pause_btn(tela, rect, label, font, mouse_pos):
@@ -109,7 +109,7 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
     anim_steps = []
     anim_idx = 0
     anim_inicio = 0
-    anim_step_ms = 2600
+    anim_step_ms = 4200
     vencedor_nome = None
     fim_delay_ms = 1200
     fim_inicio = 0
@@ -235,8 +235,14 @@ def TelaBatalha(tela, relogio, estados, config, info=None):
                     p1.nome: (18 + p1.FICHA_W // 2, tela.get_height() - p1.FICHA_H // 2 - 18),
                     p2.nome: (tela.get_width() - p2.FICHA_W // 2 - 18, 18 + p2.FICHA_H // 2),
                 }
+                acao_atual = anim_steps[anim_idx]
+                if "collide_t" not in acao_atual:
+                    pa = pos_por_nome.get(acao_atual["attacker"])
+                    pd = pos_por_nome.get(acao_atual["defender"])
+                    if pa is not None and pd is not None:
+                        acao_atual["collide_t"] = calc_collision_t(pa, pd)
                 progresso = min(1.0, (agora - anim_inicio) / max(1, anim_step_ms))
-                draw_acao_batalha(tela, anim_steps[anim_idx], progresso, pos_por_nome)
+                draw_acao_batalha(tela, acao_atual, progresso, pos_por_nome)
 
         if vencedor_nome and not pausa_ativa and (agora - fim_inicio) >= fim_delay_ms:
             if isinstance(info, dict):

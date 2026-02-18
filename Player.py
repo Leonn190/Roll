@@ -747,8 +747,14 @@ class PlayerEstrategista:
         for c in escalados:
             acumula_cartucho(c)
 
+        vida_max_anterior = int(self.vida_max)
+        vida_anterior = int(self.vida)
+
         self.vida_max = int(vida_total)
-        self.vida = self.vida_max
+        if vida_max_anterior <= 0:
+            self.vida = self.vida_max
+        else:
+            self.vida = max(0, min(self.vida_max, vida_anterior))
 
         for attr in ATRIBUTOS:
             self._set_total_animado(attr, soma[attr], agora_ms)
