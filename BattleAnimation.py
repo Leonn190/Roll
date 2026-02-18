@@ -7,6 +7,11 @@ DANO_CORES = {
     "regen": (80, 220, 120),
 }
 
+RAIO_ATAQUE = 30
+RAIO_DEFESA = 24
+RAIO_ATAQUE_POS_COLISAO = 26
+RAIO_ATAQUE_MIN = 10
+
 
 def _lerp(a, b, t):
     return a + (b - a) * t
@@ -20,6 +25,12 @@ def _cor_texto_contraste(cor_fundo):
     r, g, b = cor_fundo
     luminancia = 0.2126 * r + 0.7152 * g + 0.0722 * b
     return (20, 20, 24) if luminancia > 150 else (248, 248, 252)
+
+
+def _dist(a, b):
+    dx = b[0] - a[0]
+    dy = b[1] - a[1]
+    return math.hypot(dx, dy)
 
 
 def _draw_valor(tela, pos, valor, cor=(255, 255, 255)):
@@ -99,39 +110,56 @@ def draw_acao_batalha(tela, acao, t, pos_por_nome):
     bg.fill((*cor, 40))
     tela.blit(bg, (0, 0))
 
-    collide_t = 0.68
+    collide_t = float(acao.get("collide_t", 0.5))
     ataque_total = acao.get("raw_damage", acao.get("damage", 0))
     ataque_final = acao.get("damage", 0)
     defesa_valor = acao.get("defense_block", 0)
+    p_impacto = _proj_pos(atacante, defensor, collide_t)
 
-    if t < collide_t:
-        fase = t / collide_t
-        p_ataque = _proj_pos(atacante, defensor, fase)
-        p_defesa = _proj_pos(defensor, atacante, min(1.0, fase * 0.85))
-        draw_bola_ataque(tela, p_ataque, 21, cor, ataque_total)
-        draw_bola_defesa(tela, p_defesa, 18, (225, 228, 238), defesa_valor)
+    if t <= collide_t:
+        fase = min(1.0, t / max(0.001, collide_t))
+        p_ataque = _proj_pos(atacante, defensor, fase * collide_t)
+        p_defesa = _proj_pos(defensor, atacante, fase * collide_t)
+        draw_bola_ataque(tela, p_ataque, RAIO_ATAQUE, cor, ataque_total)
+        # defesa some no exato frame da colisão
+        if t < collide_t:
+            draw_bola_defesa(tela, p_defesa, RAIO_DEFESA, (225, 228, 238), defesa_valor)
         return
 
     hit = bool(acao.get("hit", True))
     if hit:
-        pos_colisao = _proj_pos(atacante, defensor, 1.0)
         resto_t = (t - collide_t) / max(0.001, 1.0 - collide_t)
-        fase_reducao = min(1.0, resto_t / 0.45)
-        valor_animado = max(ataque_final, round(_lerp(ataque_total, ataque_final, fase_reducao)))
-        raio = int(_lerp(23, 17, fase_reducao))
-        if resto_t <= 0.45:
-            # defesa some na colisão e o ataque encolhe número/raio
-            draw_bola_ataque(tela, pos_colisao, raio, cor, valor_animado)
+
+        # 1) após colisão, ataque segue para a ficha e vai reduzindo pelo bloqueio
+        if resto_t <= 0.35:
+            fase_ida = resto_t / 0.35
+            p_ataque = _proj_pos(p_impacto, defensor, fase_ida)
+            valor_animado = max(ataque_final, round(_lerp(ataque_total, ataque_final, fase_ida)))
+            raio = int(_lerp(RAIO_ATAQUE_POS_COLISAO, 20, fase_ida))
+            draw_bola_ataque(tela, p_ataque, raio, cor, valor_animado)
             return
 
-        retorno_t = (resto_t - 0.45) / 0.55
-        p_ataque = _proj_pos(defensor, atacante, min(1.0, retorno_t * 0.45))
-        draw_bola_ataque(tela, p_ataque, 17, cor, ataque_final)
+        # 2) na ficha, ataque vai sumindo enquanto o dano é "aplicado"
+        fase_aplica = min(1.0, (resto_t - 0.35) / 0.65)
+        valor_animado = max(0, round(_lerp(ataque_final, 0, fase_aplica)))
+        raio = int(_lerp(20, RAIO_ATAQUE_MIN, fase_aplica))
+        draw_bola_ataque(tela, defensor, raio, cor, valor_animado)
     else:
         # errou: as duas bolas somem após cruzar
         sumir_t = (t - collide_t) / max(0.001, 1.0 - collide_t)
         if sumir_t < 0.4:
-            p_ataque = _proj_pos(atacante, defensor, 1.0)
-            p_defesa = _proj_pos(defensor, atacante, 1.0)
-            draw_bola_ataque(tela, p_ataque, 16, cor, 0)
-            draw_bola_defesa(tela, p_defesa, 14, (225, 228, 238), 0)
+            p_ataque = _proj_pos(atacante, defensor, collide_t)
+            p_defesa = _proj_pos(defensor, atacante, collide_t)
+            draw_bola_ataque(tela, p_ataque, RAIO_ATAQUE_MIN, cor, 0)
+            draw_bola_defesa(tela, p_defesa, max(8, RAIO_DEFESA - 8), (225, 228, 238), 0)
+
+
+def calc_collision_t(atacante, defensor, *, raio_ataque=RAIO_ATAQUE, raio_defesa=RAIO_DEFESA):
+    # aproximação por amostragem curta para sincronizar colisão visual
+    for i in range(1, 100):
+        t = i / 100.0
+        p_ataque = _proj_pos(atacante, defensor, t)
+        p_defesa = _proj_pos(defensor, atacante, t)
+        if _dist(p_ataque, p_defesa) <= (raio_ataque + raio_defesa):
+            return t
+    return 0.5
